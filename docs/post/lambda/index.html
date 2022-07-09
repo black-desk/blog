@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="auto" class="han-init">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>lambda | RAMBLE&amp;BB</title>
+<meta name="keywords" content="">
+<meta name="description" content="这里整理一些关于c&#43;&#43;中的匿名函数的知识.
+《C&#43;&#43; primer》上有的内容就不在重述了.这里重点讲一些primer上可能没有的东西.
+捕获的时机 primer 向我们介绍到: 有两种捕获变量的方式, 值捕获和引用捕获. 其中:
+…
+与参数不同,被捕获的变量的值是在lambda创建时拷贝,而不是调用时拷贝
+…
+如果我们采用引用方式捕获一个变量,就必须确保被引用的对象在lambda执行的时候是存 在的.lambda捕获的都是局部变量,这些变量在函数结束后就不复存在了.
+…
+我们看一段代码:
+auto funtionTimesMod1(int mod) { int variableA = mod; auto f = [variableA](int a, int b) { return a % variableA * b % variableA; }; return f; } void test1() { cout &lt;&lt; &quot;---test1---&quot; &lt;&lt; endl; int a = 10, b = 20, c = 7; auto times = funtionTimesMod1(c); cout &lt;&lt; times(a, b) &lt;&lt; endl; } 这里funtionTimesMod1(int mod)返回一个签名为int(int, int)的函数,这个函数计算 两个参数相乘对mod取模的结果.">
+<meta name="author" content="">
+<link rel="canonical" href="https://black-desk.github.io/post/lambda/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.8b523f1730c922e314350296d83fd666efa16519ca136320a93df674d00b6325.css" integrity="sha256-i1I/FzDJIuMUNQKW2D/WZu&#43;hZRnKE2MgqT32dNALYyU=" rel="preload stylesheet" as="style">
+<script defer crossorigin="anonymous" src="/assets/js/highlight.f413e19d0714851f6474e7ee9632408e58ac146fbdbe62747134bea2fa3415e0.js" integrity="sha256-9BPhnQcUhR9kdOfuljJAjlisFG&#43;9vmJ0cTS&#43;ovo0FeA="
+    onload="hljs.initHighlightingOnLoad();"></script>
+<link rel="icon" href="https://black-desk.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://black-desk.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://black-desk.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://black-desk.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://black-desk.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --hljs-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript><link rel="stylesheet" media="all" href="https://cdnjs.cloudflare.com/ajax/libs/Han/3.3.0/han.min.css">
+<style>
+.uri:only-child {
+        display: inline-block;
+        width: 100%;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+}
+
+input[type="checkbox"] {
+        margin-right:0.2em;
+        margin-left: -1.7em;
+        width: 1.5em;
+}
+</style>
+<script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"> </script>
+<script>
+
+$(document).ready(()=>{
+
+$(".uri:only-child").each(function(){
+        if ((
+                this.nextSibling &&
+                this.nextSibling.nodeValue &&
+                this.nextSibling.nodeValue.trim()
+           ) || (
+                this.previousSibling &&
+                this.previousSibling.nodeValue &&
+                this.previousSibling.nodeValue.trim()
+        )) {
+                $(this).css("display","inline").css("white-space","break-spaces");
+        }
+});
+
+})
+</script>
+<meta property="og:title" content="lambda" />
+<meta property="og:description" content="这里整理一些关于c&#43;&#43;中的匿名函数的知识.
+《C&#43;&#43; primer》上有的内容就不在重述了.这里重点讲一些primer上可能没有的东西.
+捕获的时机 primer 向我们介绍到: 有两种捕获变量的方式, 值捕获和引用捕获. 其中:
+…
+与参数不同,被捕获的变量的值是在lambda创建时拷贝,而不是调用时拷贝
+…
+如果我们采用引用方式捕获一个变量,就必须确保被引用的对象在lambda执行的时候是存 在的.lambda捕获的都是局部变量,这些变量在函数结束后就不复存在了.
+…
+我们看一段代码:
+auto funtionTimesMod1(int mod) { int variableA = mod; auto f = [variableA](int a, int b) { return a % variableA * b % variableA; }; return f; } void test1() { cout &lt;&lt; &quot;---test1---&quot; &lt;&lt; endl; int a = 10, b = 20, c = 7; auto times = funtionTimesMod1(c); cout &lt;&lt; times(a, b) &lt;&lt; endl; } 这里funtionTimesMod1(int mod)返回一个签名为int(int, int)的函数,这个函数计算 两个参数相乘对mod取模的结果." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://black-desk.github.io/post/lambda/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2022-07-10T02:23:58&#43;08:00" />
+<meta property="article:modified_time" content="2022-07-10T02:23:58&#43;08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="lambda"/>
+<meta name="twitter:description" content="这里整理一些关于c&#43;&#43;中的匿名函数的知识.
+《C&#43;&#43; primer》上有的内容就不在重述了.这里重点讲一些primer上可能没有的东西.
+捕获的时机 primer 向我们介绍到: 有两种捕获变量的方式, 值捕获和引用捕获. 其中:
+…
+与参数不同,被捕获的变量的值是在lambda创建时拷贝,而不是调用时拷贝
+…
+如果我们采用引用方式捕获一个变量,就必须确保被引用的对象在lambda执行的时候是存 在的.lambda捕获的都是局部变量,这些变量在函数结束后就不复存在了.
+…
+我们看一段代码:
+auto funtionTimesMod1(int mod) { int variableA = mod; auto f = [variableA](int a, int b) { return a % variableA * b % variableA; }; return f; } void test1() { cout &lt;&lt; &quot;---test1---&quot; &lt;&lt; endl; int a = 10, b = 20, c = 7; auto times = funtionTimesMod1(c); cout &lt;&lt; times(a, b) &lt;&lt; endl; } 这里funtionTimesMod1(int mod)返回一个签名为int(int, int)的函数,这个函数计算 两个参数相乘对mod取模的结果."/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Posts",
+      "item": "https://black-desk.github.io/post/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "lambda",
+      "item": "https://black-desk.github.io/post/lambda/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "lambda",
+  "name": "lambda",
+  "description": "这里整理一些关于c++中的匿名函数的知识.\n《C++ primer》上有的内容就不在重述了.这里重点讲一些primer上可能没有的东西.\n捕获的时机 primer 向我们介绍到: 有两种捕获变量的方式, 值捕获和引用捕获. 其中:\n…\n与参数不同,被捕获的变量的值是在lambda创建时拷贝,而不是调用时拷贝\n…\n如果我们采用引用方式捕获一个变量,就必须确保被引用的对象在lambda执行的时候是存 在的.lambda捕获的都是局部变量,这些变量在函数结束后就不复存在了.\n…\n我们看一段代码:\nauto funtionTimesMod1(int mod) { int variableA = mod; auto f = [variableA](int a, int b) { return a % variableA * b % variableA; }; return f; } void test1() { cout \u0026lt;\u0026lt; \u0026quot;---test1---\u0026quot; \u0026lt;\u0026lt; endl; int a = 10, b = 20, c = 7; auto times = funtionTimesMod1(c); cout \u0026lt;\u0026lt; times(a, b) \u0026lt;\u0026lt; endl; } 这里funtionTimesMod1(int mod)返回一个签名为int(int, int)的函数,这个函数计算 两个参数相乘对mod取模的结果.",
+  "keywords": [
+    
+  ],
+  "articleBody": "这里整理一些关于c++中的匿名函数的知识.\n《C++ primer》上有的内容就不在重述了.这里重点讲一些primer上可能没有的东西.\n捕获的时机 primer 向我们介绍到: 有两种捕获变量的方式, 值捕获和引用捕获. 其中:\n…\n与参数不同,被捕获的变量的值是在lambda创建时拷贝,而不是调用时拷贝\n…\n如果我们采用引用方式捕获一个变量,就必须确保被引用的对象在lambda执行的时候是存 在的.lambda捕获的都是局部变量,这些变量在函数结束后就不复存在了.\n…\n我们看一段代码:\nauto funtionTimesMod1(int mod) { int variableA = mod; auto f = [variableA](int a, int b) { return a % variableA * b % variableA; }; return f; } void test1() { cout \u003c\u003c \"---test1---\" \u003c\u003c endl; int a = 10, b = 20, c = 7; auto times = funtionTimesMod1(c); cout \u003c\u003c times(a, b) \u003c\u003c endl; } 这里funtionTimesMod1(int mod)返回一个签名为int(int, int)的函数,这个函数计算 两个参数相乘对mod取模的结果.\n当然可以正常运行,结果为4,如果我们将它换成引用捕获:\nauto funtionTimesMod2(int mod) { int variableA = mod; auto f = [\u0026variableA](int a, int b) { return a % variableA * b % variableA; }; return f; } void test2() { cout \u003c\u003c \"---test2---\" \u003c\u003c endl; int a = 10, b = 20, c = 7; auto times = funtionTimesMod2(c); cout \u003c\u003c times(a, b) \u003c\u003c endl; } 这段代码就已经不能正常工作了,它的输出是 0.\n我们来看看为啥:\nProcess 15820 stopped * thread #1, name = 'tmp', stop reason = step in frame #0: 0x000000000040096b tmp`funtionTimesMod2(mod=7) at tmp.cpp:17 14 } 15 16 auto funtionTimesMod2(int mod) { -\u003e 17 int variableA = mod; 18 auto f = [\u0026variableA](int a, int b) { return a % variableA * b % variableA; }; 19 return f; 20 } (lldb) p \u0026variableA (int *) $1 = 0x00007fffffffe120 Process 15820 stopped * thread #1, name = 'tmp', stop reason = step over frame #0: 0x00000000004009dc tmp`test2() at tmp.cpp:25 22 cout \u003c\u003c \"---test2---\" \u003c\u003c endl; 23 int a = 10, b = 20, c = 7; 24 auto times = funtionTimesMod2(c); -\u003e 25 cout \u003c\u003c times(a, b) \u003c\u003c endl; 26 } 27 auto funtionTimesMod3(int mod) { 28 int variableA = mod; (lldb) p times ((anonymous class)) $2 = { variableA = 0x00007fffffffe120 } 可以看到times这个对象中保存下来的variableA只是一个指针,它指向我们之前创建的 局部变量variableA,这个地址在栈上,这意味着当我们真的调用times的时候,局部变 量variableA所在的那片内存已经被使用过了.所以会返回错误的结果.接下来,我们可以 看到实际上调用的时候variableA里面是20,这是因为刚好参数b被放置在 了variableA之前的位置上.\nProcess 21271 stopped * thread #1, name = 'tmp', stop reason = step in frame #0: 0x0000000000400a32 tmp`funtionTimesMod2(this=0x00007fffffffe158, a=10, b=20)::$_1::operator()(int, int) const at tmp.cpp:18 15 16 auto funtionTimesMod2(int mod) { 17 int variableA = mod; -\u003e 18 auto f = [\u0026variableA](int a, int b) { return a % variableA * b % variableA; }; 19 return f; 20 } 21 void test2() { (lldb) p variableA (int) $3 = 20 (lldb) p \u0026b (int *) $4 = 0x00007fffffffe120 lambda 的实现 根据《C++ Primer》在10.3以及14.8.1的介绍,我们知道一个lambda表达式是由编译器负责 翻译成一个没有类名,重载过调用运算符的对象的.\n这解释了为什么我们只能用auto来定义一个lambda类型的变量,因为这个类是没有名字的, 或者说它的名字是编译器自己生成的,我们并不能知道它叫什么.\n这听起来很美好,我们也确实可以写出代码,用一个自己创建的,重载过调用运算符的对象,来 模拟一个lambda:\nclass INT { public: int num; INT(const INT \u0026i) : num(i.num) { cout \u003c\u003c \"Copy constructor\" \u003c\u003c endl; } INT() = default; }; auto funtionTimesMod3(int mod) { INT variableA; cout \u003c\u003c \"----A\" \u003c\u003c endl; variableA.num = mod; cout \u003c\u003c \"----B\" \u003c\u003c endl; auto f = [variableA](int a, int b) { cout \u003c\u003c \"----C\" \u003c\u003c endl; return a % variableA.num * b % variableA.num; }; cout \u003c\u003c \"----D\" \u003c\u003c endl; return f; } void test3() { cout \u003c\u003c \"---test3---\" \u003c\u003c endl; int a = 10, b = 20, c = 7; cout \u003c\u003c \"----E\" \u003c\u003c endl; auto times = funtionTimesMod3(c); cout \u003c\u003c \"----F\" \u003c\u003c endl; cout \u003c\u003c times(a, b) \u003c\u003c endl; cout \u003c\u003c \"----G\" \u003c\u003c endl; } auto funtionTimesMod4(int mod) { INT variableA; cout \u003c\u003c \"----A\" \u003c\u003c endl; variableA.num = mod; cout \u003c\u003c \"----B\" \u003c\u003c endl; class function { const INT variableA; public: function(const INT \u0026variableA) : variableA(variableA) {} int operator()(int a, int b) { cout \u003c\u003c \"----C\" \u003c\u003c endl; return a % variableA.num * b % variableA.num; } } f(variableA); cout \u003c\u003c \"----D\" \u003c\u003c endl; return f; } void test4() { cout \u003c\u003c \"---test4---\" \u003c\u003c endl; int a = 10, b = 20, c = 7; cout \u003c\u003c \"----E\" \u003c\u003c endl; auto times = funtionTimesMod4(c); cout \u003c\u003c \"----F\" \u003c\u003c endl; cout \u003c\u003c times(a, b) \u003c\u003c endl; cout \u003c\u003c \"----G\" \u003c\u003c endl; } 为了观察发生的值拷贝的时机,以确定我们自己写的这个类的行为和lambda真的完全一致,我 们可以自定义一个class,并且让他发生拷贝构造的时候打印一些信息.\n运行结果如下:\n---test3--- ----E ----A ----B Copy constructor ----D ----F ----C 4 ----G ---test4--- ----E ----A ----B Copy constructor ----D ----F ----C 4 ----G 这又一次说明了说明捕获引起的值拷贝发生在lambda被初始化的时候.\n看起来这两个东西的行为几乎一致, 但是真的是这样吗?\n编译器的优化 编译器会对我们写的代码做出一些优化,以减少复制对象的次数.如果不了解这点可以看看这篇博客.\n如果我们关闭返回值优化,那么运行的结果是这样的:\n---test3--- ----E ----A ----B Copy constructor Copy constructor ----D Copy constructor Copy constructor ----F ----C 4 ----G ---test4--- ----E ----A ----B Copy constructor ----D Copy constructor Copy constructor ----F ----C 4 ----G 可以看到我们自己写的类,少了一次拷贝构造.\n我们先来解释一下lambda为什么会发生这么多次拷贝构造.\nauto funtionTimesMod3(int mod) { INT variableA; // 5 cout \u003c\u003c \"----A\" \u003c\u003c endl; // 6 variableA.num = mod; // 7 cout \u003c\u003c \"----B\" \u003c\u003c endl; // 8 auto f = [variableA](int a, int b) { cout \u003c\u003c \"----C\" \u003c\u003c endl; // 14 return a % variableA.num * b % variableA.num; //15 }; // 9 cout \u003c\u003c \"----D\" \u003c\u003c endl; // 10 return f; // 11 } void test3() { cout \u003c\u003c \"---test3---\" \u003c\u003c endl; // 1 int a = 10, b = 20, c = 7; // 2 cout \u003c\u003c \"----E\" \u003c\u003c endl; // 3 auto times = funtionTimesMod3(c); // 4 cout \u003c\u003c \"----F\" \u003c\u003c endl; // 12 cout \u003c\u003c times(a, b) \u003c\u003c endl; // 13 cout \u003c\u003c \"----G\" \u003c\u003c endl; //16 } 首先我们的程序是按照如上的顺序运行的.\n可以看到前两个拷贝构造发生在9,而第3、4次发生在11.\n如果完全按照语义来看的话,9这句话可以有两种理解方式:\n创建一个lambda对象,对象名字叫f,这个对象的内容就是后面那个lambda表达式. 创建一个lambda表达式,然后将其作为参数,调用同类型对象f的拷贝构造函数. 如果按照第一种方法来理解,那么第9行发生两次拷贝构造就不是很能理解了.\n所以应该是第二种.\n在10之后也发生了两次拷贝调用.应该是先建立了一个变量用来做返回值,比如说叫r,然后 将f赋值给返回值变量r,然后返回值变量r在被赋值给test3()中的times,这样发生的两次拷 贝构造.\nauto funtionTimesMod4(int mod) { INT variableA; cout \u003c\u003c \"----A\" \u003c\u003c endl; variableA.num = mod; cout \u003c\u003c \"----B\" \u003c\u003c endl; class function { const INT variableA; public: function(const INT \u0026variableA) : variableA(variableA) {} int operator()(int a, int b) { cout \u003c\u003c \"----C\" \u003c\u003c endl; return a % variableA.num * b % variableA.num; } } f(variableA); // \u003c- 这里 cout \u003c\u003c \"----D\" \u003c\u003c endl; return f; } void test4() { cout \u003c\u003c \"---test4---\" \u003c\u003c endl; int a = 10, b = 20, c = 7; cout \u003c\u003c \"----E\" \u003c\u003c endl; auto times = funtionTimesMod4(c); cout \u003c\u003c \"----F\" \u003c\u003c endl; cout \u003c\u003c times(a, b) \u003c\u003c endl; cout \u003c\u003c \"----G\" \u003c\u003c endl; } 之前自己模拟lambda的这个代码,我们在注释标注的那个位置的实现和lambda中,“先建一个 右值,然后拷贝构造出f”的行为不太一样.导致这里少了一次拷贝构造.所以实际上应该是这 样:\nauto funtionTimesMod5(int mod) { INT variableA; cout \u003c\u003c \"----A\" \u003c\u003c endl; variableA.num = mod; cout \u003c\u003c \"----B\" \u003c\u003c endl; class function { const INT variableA; public: function(const INT \u0026variableA) : variableA(variableA) {} int operator()(int a, int b) { cout \u003c\u003c \"----C\" \u003c\u003c endl; return a % variableA.num * b % variableA.num; } }; function f = function(variableA); cout \u003c\u003c \"----D\" \u003c\u003c endl; return f; } void test5() { cout \u003c\u003c \"---test5---\" \u003c\u003c endl; int a = 10, b = 20, c = 7; cout \u003c\u003c \"----E\" \u003c\u003c endl; auto times = funtionTimesMod5(c); cout \u003c\u003c \"----F\" \u003c\u003c endl; cout \u003c\u003c times(a, b) \u003c\u003c endl; cout \u003c\u003c \"----G\" \u003c\u003c endl; } 实际上没必要纠结那么多,正常编译的话,其实是不会去先建一个右值的对象的.\n代码 #include using namespace std; auto funtionTimesMod1(int mod) { int variableA = mod; auto f = [variableA](int a, int b) { return a % variableA * b % variableA; }; return f; } void test1() { cout \u003c\u003c \"---test1---\" \u003c\u003c endl; int a = 10, b = 20, c = 7; auto times = funtionTimesMod1(c); cout \u003c\u003c times(a, b) \u003c\u003c endl; } auto funtionTimesMod2(int mod) { int variableA = mod; auto f = [\u0026variableA](int a, int b) { return a % variableA * b % variableA; }; return f; } void test2() { cout \u003c\u003c \"---test2---\" \u003c\u003c endl; int a = 10, b = 20, c = 7; auto times = funtionTimesMod2(c); cout \u003c\u003c times(a, b) \u003c\u003c endl; } class INT { public: int num; INT(const INT \u0026i) : num(i.num) { cout \u003c\u003c \"Copy constructor\" \u003c\u003c endl; } INT() = default; }; auto funtionTimesMod3(int mod) { INT variableA; cout \u003c\u003c \"----A\" \u003c\u003c endl; variableA.num = mod; cout \u003c\u003c \"----B\" \u003c\u003c endl; auto f = [variableA](int a, int b) { cout \u003c\u003c \"----C\" \u003c\u003c endl; return a % variableA.num * b % variableA.num; }; cout \u003c\u003c \"----D\" \u003c\u003c endl; return f; } void test3() { cout \u003c\u003c \"---test3---\" \u003c\u003c endl; int a = 10, b = 20, c = 7; cout \u003c\u003c \"----E\" \u003c\u003c endl; auto times = funtionTimesMod3(c); cout \u003c\u003c \"----F\" \u003c\u003c endl; cout \u003c\u003c times(a, b) \u003c\u003c endl; cout \u003c\u003c \"----G\" \u003c\u003c endl; } auto funtionTimesMod4(int mod) { INT variableA; cout \u003c\u003c \"----A\" \u003c\u003c endl; variableA.num = mod; cout \u003c\u003c \"----B\" \u003c\u003c endl; class function { const INT variableA; public: function(const INT \u0026variableA) : variableA(variableA) {} int operator()(int a, int b) { cout \u003c\u003c \"----C\" \u003c\u003c endl; return a % variableA.num * b % variableA.num; } } f(variableA); cout \u003c\u003c \"----D\" \u003c\u003c endl; return f; } void test4() { cout \u003c\u003c \"---test4---\" \u003c\u003c endl; int a = 10, b = 20, c = 7; cout \u003c\u003c \"----E\" \u003c\u003c endl; auto times = funtionTimesMod4(c); cout \u003c\u003c \"----F\" \u003c\u003c endl; cout \u003c\u003c times(a, b) \u003c\u003c endl; cout \u003c\u003c \"----G\" \u003c\u003c endl; } auto funtionTimesMod5(int mod) { INT variableA; cout \u003c\u003c \"----A\" \u003c\u003c endl; variableA.num = mod; cout \u003c\u003c \"----B\" \u003c\u003c endl; class function { const INT variableA; public: function(const INT \u0026variableA) : variableA(variableA) {} int operator()(int a, int b) { cout \u003c\u003c \"----C\" \u003c\u003c endl; return a % variableA.num * b % variableA.num; } }; function f = function(variableA); cout \u003c\u003c \"----D\" \u003c\u003c endl; return f; } void test5() { cout \u003c\u003c \"---test5---\" \u003c\u003c endl; int a = 10, b = 20, c = 7; cout \u003c\u003c \"----E\" \u003c\u003c endl; auto times = funtionTimesMod5(c); cout \u003c\u003c \"----F\" \u003c\u003c endl; cout \u003c\u003c times(a, b) \u003c\u003c endl; cout \u003c\u003c \"----G\" \u003c\u003c endl; } int main() { test1(); test2(); test3(); test4(); test5(); } ",
+  "wordCount" : "1471",
+  "inLanguage": "zh-cn",
+  "datePublished": "2022-07-10T02:23:58+08:00",
+  "dateModified": "2022-07-10T02:23:58+08:00",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://black-desk.github.io/post/lambda/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "RAMBLE\u0026BB",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://black-desk.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://black-desk.github.io" accesskey="h" title="RAMBLE&amp;BB (Alt + H)">RAMBLE&amp;BB</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title">
+      lambda
+    </h1>
+    <div class="post-meta"><span title='2022-07-10 02:23:58 +0800 CST'>July 10, 2022</span>
+
+</div>
+  </header> 
+  <div class="post-content"><p>这里整理一些关于<code>c++</code>中的匿名函数的知识.</p>
+<p>《C++
+primer》上有的内容就不在重述了.这里重点讲一些primer上<strong>可能</strong>没有的东西.</p>
+<h2 id="捕获的时机">捕获的时机<a hidden class="anchor" aria-hidden="true" href="#捕获的时机">#</a></h2>
+<p>primer 向我们介绍到: 有两种捕获变量的方式, 值捕获和引用捕获.
+其中:</p>
+<blockquote>
+<p>…</p>
+<p>与参数不同,被捕获的变量的值是在lambda创建时拷贝,而不是调用时拷贝</p>
+<p>…</p>
+<p>如果我们采用引用方式捕获一个变量,就必须确保被引用的对象在lambda执行的时候是存
+在的.lambda捕获的都是局部变量,这些变量在函数结束后就不复存在了.</p>
+<p>…</p>
+</blockquote>
+<p>我们看一段代码:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> funtionTimesMod1<span class="op">(</span><span class="dt">int</span> mod<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> variableA <span class="op">=</span> mod<span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> f <span class="op">=</span> <span class="op">[</span>variableA<span class="op">](</span><span class="dt">int</span> a<span class="op">,</span> <span class="dt">int</span> b<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> a <span class="op">%</span> variableA <span class="op">*</span> b <span class="op">%</span> variableA<span class="op">;</span> <span class="op">};</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> f<span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> test1<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;---test1---&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> a <span class="op">=</span> <span class="dv">10</span><span class="op">,</span> b <span class="op">=</span> <span class="dv">20</span><span class="op">,</span> c <span class="op">=</span> <span class="dv">7</span><span class="op">;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> times <span class="op">=</span> funtionTimesMod1<span class="op">(</span>c<span class="op">);</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> times<span class="op">(</span>a<span class="op">,</span> b<span class="op">)</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>这里<code>funtionTimesMod1(int mod)</code>返回一个签名为<code>int(int, int)</code>的函数,这个函数计算
+两个参数相乘对<code>mod</code>取模的结果.</p>
+<p>当然可以正常运行,结果为<code>4</code>,如果我们将它换成引用捕获:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> funtionTimesMod2<span class="op">(</span><span class="dt">int</span> mod<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> variableA <span class="op">=</span> mod<span class="op">;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> f <span class="op">=</span> <span class="op">[&amp;</span>variableA<span class="op">](</span><span class="dt">int</span> a<span class="op">,</span> <span class="dt">int</span> b<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> a <span class="op">%</span> variableA <span class="op">*</span> b <span class="op">%</span> variableA<span class="op">;</span> <span class="op">};</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> f<span class="op">;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> test2<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;---test2---&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> a <span class="op">=</span> <span class="dv">10</span><span class="op">,</span> b <span class="op">=</span> <span class="dv">20</span><span class="op">,</span> c <span class="op">=</span> <span class="dv">7</span><span class="op">;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> times <span class="op">=</span> funtionTimesMod2<span class="op">(</span>c<span class="op">);</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> times<span class="op">(</span>a<span class="op">,</span> b<span class="op">)</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>这段代码就已经不能正常工作了,它的输出是 <code>0</code>.</p>
+<p>我们来看看为啥:</p>
+<pre><code>Process 15820 stopped
+* thread #1, name = &#39;tmp&#39;, stop reason = step in
+    frame #0: 0x000000000040096b tmp`funtionTimesMod2(mod=7) at tmp.cpp:17
+   14   }
+   15
+   16   auto funtionTimesMod2(int mod) {
+-&gt; 17     int variableA = mod;
+   18     auto f = [&amp;variableA](int a, int b) { return a % variableA * b % variableA; };
+   19     return f;
+   20   }
+(lldb) p &amp;variableA
+(int *) $1 = 0x00007fffffffe120
+
+Process 15820 stopped
+* thread #1, name = &#39;tmp&#39;, stop reason = step over
+    frame #0: 0x00000000004009dc tmp`test2() at tmp.cpp:25
+   22     cout &lt;&lt; &quot;---test2---&quot; &lt;&lt; endl;
+   23     int a = 10, b = 20, c = 7;
+   24     auto times = funtionTimesMod2(c);
+-&gt; 25     cout &lt;&lt; times(a, b) &lt;&lt; endl;
+   26   }
+   27   auto funtionTimesMod3(int mod) {
+   28     int variableA = mod;
+(lldb) p times
+((anonymous class)) $2 = {
+  variableA = 0x00007fffffffe120
+}</code></pre>
+<p>可以看到<code>times</code>这个对象中保存下来的<code>variableA</code>只是一个指针,它指向我们之前创建的
+局部变量<code>variableA</code>,这个地址在栈上,这意味着当我们真的调用<code>times</code>的时候,局部变
+量<code>variableA</code>所在的那片内存已经被使用过了.所以会返回错误的结果.接下来,我们可以
+看到实际上调用的时候<code>variableA</code>里面是<code>20</code>,这是因为刚好参数<code>b</code>被放置在
+了<code>variableA</code>之前的位置上.</p>
+<pre><code>Process 21271 stopped
+* thread #1, name = &#39;tmp&#39;, stop reason = step in
+    frame #0: 0x0000000000400a32 tmp`funtionTimesMod2(this=0x00007fffffffe158, a=10, b=20)::$_1::operator()(int, int) const at tmp.cpp:18
+   15
+   16   auto funtionTimesMod2(int mod) {
+   17     int variableA = mod;
+-&gt; 18     auto f = [&amp;variableA](int a, int b) { return a % variableA * b % variableA; };
+   19     return f;
+   20   }
+   21   void test2() {
+(lldb) p variableA
+(int) $3 = 20
+(lldb) p &amp;b
+(int *) $4 = 0x00007fffffffe120</code></pre>
+<h2 id="lambda-的实现">lambda 的实现<a hidden class="anchor" aria-hidden="true" href="#lambda-的实现">#</a></h2>
+<p>根据《C++
+Primer》在10.3以及14.8.1的介绍,我们知道一个lambda表达式是由编译器负责
+翻译成一个<strong>没有类名,重载过调用运算符</strong>的对象的.</p>
+<p>这解释了为什么我们只能用<code>auto</code>来定义一个lambda类型的变量,因为这个类是没有名字的,
+或者说它的名字是编译器自己生成的,我们并不能知道它叫什么.</p>
+<p>这听起来很美好,我们也确实可以写出代码,用一个自己创建的,重载过调用运算符的对象,来
+模拟一个lambda:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> INT <span class="op">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> num<span class="op">;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  INT<span class="op">(</span><span class="at">const</span> INT <span class="op">&amp;</span>i<span class="op">)</span> <span class="op">:</span> num<span class="op">(</span>i<span class="op">.</span>num<span class="op">)</span> <span class="op">{</span> cout <span class="op">&lt;&lt;</span> <span class="st">&quot;Copy constructor&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span> <span class="op">}</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  INT<span class="op">()</span> <span class="op">=</span> <span class="cf">default</span><span class="op">;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> funtionTimesMod3<span class="op">(</span><span class="dt">int</span> mod<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  INT variableA<span class="op">;</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----A&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  variableA<span class="op">.</span>num <span class="op">=</span> mod<span class="op">;</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----B&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> f <span class="op">=</span> <span class="op">[</span>variableA<span class="op">](</span><span class="dt">int</span> a<span class="op">,</span> <span class="dt">int</span> b<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----C&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> a <span class="op">%</span> variableA<span class="op">.</span>num <span class="op">*</span> b <span class="op">%</span> variableA<span class="op">.</span>num<span class="op">;</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="op">};</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----D&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> f<span class="op">;</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> test3<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;---test3---&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> a <span class="op">=</span> <span class="dv">10</span><span class="op">,</span> b <span class="op">=</span> <span class="dv">20</span><span class="op">,</span> c <span class="op">=</span> <span class="dv">7</span><span class="op">;</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----E&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> times <span class="op">=</span> funtionTimesMod3<span class="op">(</span>c<span class="op">);</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----F&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> times<span class="op">(</span>a<span class="op">,</span> b<span class="op">)</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----G&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> funtionTimesMod4<span class="op">(</span><span class="dt">int</span> mod<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>  INT variableA<span class="op">;</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----A&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>  variableA<span class="op">.</span>num <span class="op">=</span> mod<span class="op">;</span></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----B&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>  <span class="kw">class</span> function <span class="op">{</span></span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> INT variableA<span class="op">;</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>  <span class="kw">public</span><span class="op">:</span></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>    function<span class="op">(</span><span class="at">const</span> INT <span class="op">&amp;</span>variableA<span class="op">)</span> <span class="op">:</span> variableA<span class="op">(</span>variableA<span class="op">)</span> <span class="op">{}</span></span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> <span class="kw">operator</span><span class="op">()(</span><span class="dt">int</span> a<span class="op">,</span> <span class="dt">int</span> b<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>      cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----C&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> a <span class="op">%</span> variableA<span class="op">.</span>num <span class="op">*</span> b <span class="op">%</span> variableA<span class="op">.</span>num<span class="op">;</span></span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span> f<span class="op">(</span>variableA<span class="op">);</span></span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----D&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> f<span class="op">;</span></span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> test4<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;---test4---&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> a <span class="op">=</span> <span class="dv">10</span><span class="op">,</span> b <span class="op">=</span> <span class="dv">20</span><span class="op">,</span> c <span class="op">=</span> <span class="dv">7</span><span class="op">;</span></span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----E&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> times <span class="op">=</span> funtionTimesMod4<span class="op">(</span>c<span class="op">);</span></span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----F&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> times<span class="op">(</span>a<span class="op">,</span> b<span class="op">)</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----G&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>为了观察发生的值拷贝的时机,以确定我们自己写的这个类的行为和lambda真的完全一致,我
+们可以自定义一个class,并且让他发生拷贝构造的时候打印一些信息.</p>
+<p>运行结果如下:</p>
+<pre><code>---test3---
+----E
+----A
+----B
+Copy constructor
+----D
+----F
+----C
+4
+----G
+---test4---
+----E
+----A
+----B
+Copy constructor
+----D
+----F
+----C
+4
+----G</code></pre>
+<p>这又一次说明了说明捕获引起的值拷贝发生在lambda被初始化的时候.</p>
+<p>看起来这两个东西的行为几乎一致, 但是真的是这样吗?</p>
+<h2 id="编译器的优化">编译器的优化<a hidden class="anchor" aria-hidden="true" href="#编译器的优化">#</a></h2>
+<p>编译器会对我们写的代码做出一些优化,以减少复制对象的次数.如果不了解这点可以看看<a
+href="https://www.cnblogs.com/kekec/p/11303391.html">这篇</a>博客.</p>
+<p>如果我们关闭返回值优化,那么运行的结果是这样的:</p>
+<pre><code>---test3---
+----E
+----A
+----B
+Copy constructor
+Copy constructor
+----D
+Copy constructor
+Copy constructor
+----F
+----C
+4
+----G
+---test4---
+----E
+----A
+----B
+Copy constructor
+----D
+Copy constructor
+Copy constructor
+----F
+----C
+4
+----G</code></pre>
+<p>可以看到我们自己写的类,少了一次拷贝构造.</p>
+<p>我们先来解释一下lambda为什么会发生这么多次拷贝构造.</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> funtionTimesMod3<span class="op">(</span><span class="dt">int</span> mod<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  INT variableA<span class="op">;</span> <span class="co">// 5</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----A&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span> <span class="co">// 6 </span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  variableA<span class="op">.</span>num <span class="op">=</span> mod<span class="op">;</span> <span class="co">// 7</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----B&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span> <span class="co">// 8</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> f <span class="op">=</span> <span class="op">[</span>variableA<span class="op">](</span><span class="dt">int</span> a<span class="op">,</span> <span class="dt">int</span> b<span class="op">)</span> <span class="op">{</span> </span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----C&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span> <span class="co">// 14</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> a <span class="op">%</span> variableA<span class="op">.</span>num <span class="op">*</span> b <span class="op">%</span> variableA<span class="op">.</span>num<span class="op">;</span> <span class="co">//15</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="op">};</span> <span class="co">// 9</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----D&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span> <span class="co">// 10</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> f<span class="op">;</span> <span class="co">// 11</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> test3<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;---test3---&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span> <span class="co">// 1</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> a <span class="op">=</span> <span class="dv">10</span><span class="op">,</span> b <span class="op">=</span> <span class="dv">20</span><span class="op">,</span> c <span class="op">=</span> <span class="dv">7</span><span class="op">;</span> <span class="co">// 2</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----E&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span> <span class="co">// 3</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> times <span class="op">=</span> funtionTimesMod3<span class="op">(</span>c<span class="op">);</span> <span class="co">// 4</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----F&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span> <span class="co">// 12</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> times<span class="op">(</span>a<span class="op">,</span> b<span class="op">)</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span> <span class="co">// 13</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----G&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span> <span class="co">//16</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>首先我们的程序是按照如上的顺序运行的.</p>
+<p>可以看到前两个拷贝构造发生在9,而第3、4次发生在11.</p>
+<p>如果完全按照语义来看的话,9这句话可以有两种理解方式:</p>
+<ol type="1">
+<li>创建一个lambda对象,对象名字叫f,这个对象的内容就是后面那个lambda表达式.</li>
+<li>创建一个lambda表达式,然后将其作为参数,调用同类型对象f的拷贝构造函数.</li>
+</ol>
+<p>如果按照第一种方法来理解,那么第9行发生两次拷贝构造就不是很能理解了.</p>
+<p>所以应该是第二种.</p>
+<p>在10之后也发生了两次拷贝调用.应该是先建立了一个变量用来做返回值,比如说叫r,然后
+将f赋值给返回值变量r,然后返回值变量r在被赋值给test3()中的times,这样发生的两次拷
+贝构造.</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> funtionTimesMod4<span class="op">(</span><span class="dt">int</span> mod<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  INT variableA<span class="op">;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----A&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  variableA<span class="op">.</span>num <span class="op">=</span> mod<span class="op">;</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----B&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">class</span> function <span class="op">{</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> INT variableA<span class="op">;</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">public</span><span class="op">:</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    function<span class="op">(</span><span class="at">const</span> INT <span class="op">&amp;</span>variableA<span class="op">)</span> <span class="op">:</span> variableA<span class="op">(</span>variableA<span class="op">)</span> <span class="op">{}</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> <span class="kw">operator</span><span class="op">()(</span><span class="dt">int</span> a<span class="op">,</span> <span class="dt">int</span> b<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>      cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----C&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> a <span class="op">%</span> variableA<span class="op">.</span>num <span class="op">*</span> b <span class="op">%</span> variableA<span class="op">.</span>num<span class="op">;</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span> f<span class="op">(</span>variableA<span class="op">);</span> <span class="co">// &lt;- 这里</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----D&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> f<span class="op">;</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> test4<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;---test4---&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> a <span class="op">=</span> <span class="dv">10</span><span class="op">,</span> b <span class="op">=</span> <span class="dv">20</span><span class="op">,</span> c <span class="op">=</span> <span class="dv">7</span><span class="op">;</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----E&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> times <span class="op">=</span> funtionTimesMod4<span class="op">(</span>c<span class="op">);</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----F&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> times<span class="op">(</span>a<span class="op">,</span> b<span class="op">)</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----G&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>之前自己模拟lambda的这个代码,我们在注释标注的那个位置的实现和lambda中,“先建一个
+右值,然后拷贝构造出f”的行为不太一样.导致这里少了一次拷贝构造.所以实际上应该是这
+样:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> funtionTimesMod5<span class="op">(</span><span class="dt">int</span> mod<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  INT variableA<span class="op">;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----A&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  variableA<span class="op">.</span>num <span class="op">=</span> mod<span class="op">;</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----B&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">class</span> function <span class="op">{</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> INT variableA<span class="op">;</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">public</span><span class="op">:</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    function<span class="op">(</span><span class="at">const</span> INT <span class="op">&amp;</span>variableA<span class="op">)</span> <span class="op">:</span> variableA<span class="op">(</span>variableA<span class="op">)</span> <span class="op">{}</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> <span class="kw">operator</span><span class="op">()(</span><span class="dt">int</span> a<span class="op">,</span> <span class="dt">int</span> b<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>      cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----C&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> a <span class="op">%</span> variableA<span class="op">.</span>num <span class="op">*</span> b <span class="op">%</span> variableA<span class="op">.</span>num<span class="op">;</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="op">};</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  function f <span class="op">=</span> function<span class="op">(</span>variableA<span class="op">);</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----D&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> f<span class="op">;</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> test5<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;---test5---&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> a <span class="op">=</span> <span class="dv">10</span><span class="op">,</span> b <span class="op">=</span> <span class="dv">20</span><span class="op">,</span> c <span class="op">=</span> <span class="dv">7</span><span class="op">;</span></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----E&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> times <span class="op">=</span> funtionTimesMod5<span class="op">(</span>c<span class="op">);</span></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----F&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> times<span class="op">(</span>a<span class="op">,</span> b<span class="op">)</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----G&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>实际上没必要纠结那么多,正常编译的话,其实是不会去先建一个右值的对象的.</p>
+<h2 id="代码">代码<a hidden class="anchor" aria-hidden="true" href="#代码">#</a></h2>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;bits/stdc++.h&gt;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <span class="kw">namespace</span> std<span class="op">;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> funtionTimesMod1<span class="op">(</span><span class="dt">int</span> mod<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> variableA <span class="op">=</span> mod<span class="op">;</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> f <span class="op">=</span> <span class="op">[</span>variableA<span class="op">](</span><span class="dt">int</span> a<span class="op">,</span> <span class="dt">int</span> b<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> a <span class="op">%</span> variableA <span class="op">*</span> b <span class="op">%</span> variableA<span class="op">;</span> <span class="op">};</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> f<span class="op">;</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> test1<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;---test1---&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> a <span class="op">=</span> <span class="dv">10</span><span class="op">,</span> b <span class="op">=</span> <span class="dv">20</span><span class="op">,</span> c <span class="op">=</span> <span class="dv">7</span><span class="op">;</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> times <span class="op">=</span> funtionTimesMod1<span class="op">(</span>c<span class="op">);</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> times<span class="op">(</span>a<span class="op">,</span> b<span class="op">)</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> funtionTimesMod2<span class="op">(</span><span class="dt">int</span> mod<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> variableA <span class="op">=</span> mod<span class="op">;</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> f <span class="op">=</span> <span class="op">[&amp;</span>variableA<span class="op">](</span><span class="dt">int</span> a<span class="op">,</span> <span class="dt">int</span> b<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> a <span class="op">%</span> variableA <span class="op">*</span> b <span class="op">%</span> variableA<span class="op">;</span> <span class="op">};</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> f<span class="op">;</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> test2<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;---test2---&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> a <span class="op">=</span> <span class="dv">10</span><span class="op">,</span> b <span class="op">=</span> <span class="dv">20</span><span class="op">,</span> c <span class="op">=</span> <span class="dv">7</span><span class="op">;</span></span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> times <span class="op">=</span> funtionTimesMod2<span class="op">(</span>c<span class="op">);</span></span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> times<span class="op">(</span>a<span class="op">,</span> b<span class="op">)</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> INT <span class="op">{</span></span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> num<span class="op">;</span></span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>  INT<span class="op">(</span><span class="at">const</span> INT <span class="op">&amp;</span>i<span class="op">)</span> <span class="op">:</span> num<span class="op">(</span>i<span class="op">.</span>num<span class="op">)</span> <span class="op">{</span> cout <span class="op">&lt;&lt;</span> <span class="st">&quot;Copy constructor&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span> <span class="op">}</span></span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>  INT<span class="op">()</span> <span class="op">=</span> <span class="cf">default</span><span class="op">;</span></span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> funtionTimesMod3<span class="op">(</span><span class="dt">int</span> mod<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>  INT variableA<span class="op">;</span></span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----A&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>  variableA<span class="op">.</span>num <span class="op">=</span> mod<span class="op">;</span></span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----B&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> f <span class="op">=</span> <span class="op">[</span>variableA<span class="op">](</span><span class="dt">int</span> a<span class="op">,</span> <span class="dt">int</span> b<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>    cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----C&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> a <span class="op">%</span> variableA<span class="op">.</span>num <span class="op">*</span> b <span class="op">%</span> variableA<span class="op">.</span>num<span class="op">;</span></span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>  <span class="op">};</span></span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----D&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> f<span class="op">;</span></span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> test3<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;---test3---&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-50"><a href="#cb11-50" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> a <span class="op">=</span> <span class="dv">10</span><span class="op">,</span> b <span class="op">=</span> <span class="dv">20</span><span class="op">,</span> c <span class="op">=</span> <span class="dv">7</span><span class="op">;</span></span>
+<span id="cb11-51"><a href="#cb11-51" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----E&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-52"><a href="#cb11-52" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> times <span class="op">=</span> funtionTimesMod3<span class="op">(</span>c<span class="op">);</span></span>
+<span id="cb11-53"><a href="#cb11-53" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----F&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-54"><a href="#cb11-54" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> times<span class="op">(</span>a<span class="op">,</span> b<span class="op">)</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-55"><a href="#cb11-55" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----G&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-56"><a href="#cb11-56" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb11-57"><a href="#cb11-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-58"><a href="#cb11-58" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> funtionTimesMod4<span class="op">(</span><span class="dt">int</span> mod<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-59"><a href="#cb11-59" aria-hidden="true" tabindex="-1"></a>  INT variableA<span class="op">;</span></span>
+<span id="cb11-60"><a href="#cb11-60" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----A&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-61"><a href="#cb11-61" aria-hidden="true" tabindex="-1"></a>  variableA<span class="op">.</span>num <span class="op">=</span> mod<span class="op">;</span></span>
+<span id="cb11-62"><a href="#cb11-62" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----B&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-63"><a href="#cb11-63" aria-hidden="true" tabindex="-1"></a>  <span class="kw">class</span> function <span class="op">{</span></span>
+<span id="cb11-64"><a href="#cb11-64" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> INT variableA<span class="op">;</span></span>
+<span id="cb11-65"><a href="#cb11-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-66"><a href="#cb11-66" aria-hidden="true" tabindex="-1"></a>  <span class="kw">public</span><span class="op">:</span></span>
+<span id="cb11-67"><a href="#cb11-67" aria-hidden="true" tabindex="-1"></a>    function<span class="op">(</span><span class="at">const</span> INT <span class="op">&amp;</span>variableA<span class="op">)</span> <span class="op">:</span> variableA<span class="op">(</span>variableA<span class="op">)</span> <span class="op">{}</span></span>
+<span id="cb11-68"><a href="#cb11-68" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> <span class="kw">operator</span><span class="op">()(</span><span class="dt">int</span> a<span class="op">,</span> <span class="dt">int</span> b<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-69"><a href="#cb11-69" aria-hidden="true" tabindex="-1"></a>      cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----C&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-70"><a href="#cb11-70" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> a <span class="op">%</span> variableA<span class="op">.</span>num <span class="op">*</span> b <span class="op">%</span> variableA<span class="op">.</span>num<span class="op">;</span></span>
+<span id="cb11-71"><a href="#cb11-71" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb11-72"><a href="#cb11-72" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span> f<span class="op">(</span>variableA<span class="op">);</span></span>
+<span id="cb11-73"><a href="#cb11-73" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----D&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-74"><a href="#cb11-74" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> f<span class="op">;</span></span>
+<span id="cb11-75"><a href="#cb11-75" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb11-76"><a href="#cb11-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-77"><a href="#cb11-77" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> test4<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb11-78"><a href="#cb11-78" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;---test4---&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-79"><a href="#cb11-79" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> a <span class="op">=</span> <span class="dv">10</span><span class="op">,</span> b <span class="op">=</span> <span class="dv">20</span><span class="op">,</span> c <span class="op">=</span> <span class="dv">7</span><span class="op">;</span></span>
+<span id="cb11-80"><a href="#cb11-80" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----E&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-81"><a href="#cb11-81" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> times <span class="op">=</span> funtionTimesMod4<span class="op">(</span>c<span class="op">);</span></span>
+<span id="cb11-82"><a href="#cb11-82" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----F&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-83"><a href="#cb11-83" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> times<span class="op">(</span>a<span class="op">,</span> b<span class="op">)</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-84"><a href="#cb11-84" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----G&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-85"><a href="#cb11-85" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb11-86"><a href="#cb11-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-87"><a href="#cb11-87" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> funtionTimesMod5<span class="op">(</span><span class="dt">int</span> mod<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-88"><a href="#cb11-88" aria-hidden="true" tabindex="-1"></a>  INT variableA<span class="op">;</span></span>
+<span id="cb11-89"><a href="#cb11-89" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----A&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-90"><a href="#cb11-90" aria-hidden="true" tabindex="-1"></a>  variableA<span class="op">.</span>num <span class="op">=</span> mod<span class="op">;</span></span>
+<span id="cb11-91"><a href="#cb11-91" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----B&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-92"><a href="#cb11-92" aria-hidden="true" tabindex="-1"></a>  <span class="kw">class</span> function <span class="op">{</span></span>
+<span id="cb11-93"><a href="#cb11-93" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> INT variableA<span class="op">;</span></span>
+<span id="cb11-94"><a href="#cb11-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-95"><a href="#cb11-95" aria-hidden="true" tabindex="-1"></a>  <span class="kw">public</span><span class="op">:</span></span>
+<span id="cb11-96"><a href="#cb11-96" aria-hidden="true" tabindex="-1"></a>    function<span class="op">(</span><span class="at">const</span> INT <span class="op">&amp;</span>variableA<span class="op">)</span> <span class="op">:</span> variableA<span class="op">(</span>variableA<span class="op">)</span> <span class="op">{}</span></span>
+<span id="cb11-97"><a href="#cb11-97" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> <span class="kw">operator</span><span class="op">()(</span><span class="dt">int</span> a<span class="op">,</span> <span class="dt">int</span> b<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-98"><a href="#cb11-98" aria-hidden="true" tabindex="-1"></a>      cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----C&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-99"><a href="#cb11-99" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> a <span class="op">%</span> variableA<span class="op">.</span>num <span class="op">*</span> b <span class="op">%</span> variableA<span class="op">.</span>num<span class="op">;</span></span>
+<span id="cb11-100"><a href="#cb11-100" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb11-101"><a href="#cb11-101" aria-hidden="true" tabindex="-1"></a>  <span class="op">};</span></span>
+<span id="cb11-102"><a href="#cb11-102" aria-hidden="true" tabindex="-1"></a>  function f <span class="op">=</span> function<span class="op">(</span>variableA<span class="op">);</span></span>
+<span id="cb11-103"><a href="#cb11-103" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----D&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-104"><a href="#cb11-104" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> f<span class="op">;</span></span>
+<span id="cb11-105"><a href="#cb11-105" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb11-106"><a href="#cb11-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-107"><a href="#cb11-107" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> test5<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb11-108"><a href="#cb11-108" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;---test5---&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-109"><a href="#cb11-109" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> a <span class="op">=</span> <span class="dv">10</span><span class="op">,</span> b <span class="op">=</span> <span class="dv">20</span><span class="op">,</span> c <span class="op">=</span> <span class="dv">7</span><span class="op">;</span></span>
+<span id="cb11-110"><a href="#cb11-110" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----E&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-111"><a href="#cb11-111" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> times <span class="op">=</span> funtionTimesMod5<span class="op">(</span>c<span class="op">);</span></span>
+<span id="cb11-112"><a href="#cb11-112" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----F&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-113"><a href="#cb11-113" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> times<span class="op">(</span>a<span class="op">,</span> b<span class="op">)</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-114"><a href="#cb11-114" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> <span class="st">&quot;----G&quot;</span> <span class="op">&lt;&lt;</span> endl<span class="op">;</span></span>
+<span id="cb11-115"><a href="#cb11-115" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb11-116"><a href="#cb11-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-117"><a href="#cb11-117" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb11-118"><a href="#cb11-118" aria-hidden="true" tabindex="-1"></a>  test1<span class="op">();</span></span>
+<span id="cb11-119"><a href="#cb11-119" aria-hidden="true" tabindex="-1"></a>  test2<span class="op">();</span></span>
+<span id="cb11-120"><a href="#cb11-120" aria-hidden="true" tabindex="-1"></a>  test3<span class="op">();</span></span>
+<span id="cb11-121"><a href="#cb11-121" aria-hidden="true" tabindex="-1"></a>  test4<span class="op">();</span></span>
+<span id="cb11-122"><a href="#cb11-122" aria-hidden="true" tabindex="-1"></a>  test5<span class="op">();</span></span>
+<span id="cb11-123"><a href="#cb11-123" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2022 <a href="https://black-desk.github.io">RAMBLE&amp;BB</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a><script src="https://cdnjs.cloudflare.com/ajax/libs/Han/3.3.0/han.min.js"></script>
+
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>
+

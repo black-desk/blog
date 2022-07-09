@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="auto" class="han-init">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>只是为了把 Steam 游戏放到开始屏幕上 | RAMBLE&amp;BB</title>
+<meta name="keywords" content="">
+<meta name="description" content="很久以前, 我有一个梦想, 我的开始菜单上能直接固定一些 steam 游戏的磁贴.
+然后我苦苦地寻找, 发现了这篇知乎文章, 然后我忍痛剁手, 花了我六块大洋, 买了这个叫 Steam Tiles 的 UWP 应用, 而这一切, 只是噩梦的开始.
+初次使用这个 UWP 应用, 它就刷新了我的三观. 一个功能如此简单的应用居然能这么卡.
+它需要读你安装 steam 游戏的目录, 然后从里面寻找合适大小的图片来制作磁贴, 也允许 用户自定义图片, 可以从 url 下载图片, 可以从本地选取图片文件, 允许用户改变图片的 位置, 大小, 以及磁贴的背景色.
+听起来很美好, 该自定义的都能自定义. 但是事实上.
+我是想破脑袋也想不出来, 为什么他读文件找图片能这么慢, 5个游戏, 他头一次找个图要 将近半个小时.
+image-20200504214634198 不仅慢, 还有可能会读不出图片来, 比如像下面这样:
+image-20200504213156290 而这个时候我唯一找到的解决方法, 就是 TMD 清除掉他对于图片的缓存, 然后再让他找一 次.
+为什么这么慢呢? 我也不知道. 任务管理器开起来一看:
+image-20200504213307798 不占用 CPU, 内存也不大, 那是磁盘读写么?
+image-20200504213452252 看起来也不是磁盘读写.那咋回事呢? 天知道.
+好在这种找图的过程在你使用这个软件的过程中只会出现一次 (当然如果你装了个新游戏, 然后想把它钉在开始菜单里面, 你又会经历一遍这个神奇的事情.) 经过几次的尝试, 我终 于可以正常的加载出图片了, 这个时候我发现了一个特别操蛋的事情.">
+<meta name="author" content="">
+<link rel="canonical" href="https://black-desk.github.io/post/%E5%8F%AA%E6%98%AF%E4%B8%BA%E4%BA%86%E6%8A%8A-steam-%E6%B8%B8%E6%88%8F%E6%94%BE%E5%88%B0%E5%BC%80%E5%A7%8B%E5%B1%8F%E5%B9%95%E4%B8%8A/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.8b523f1730c922e314350296d83fd666efa16519ca136320a93df674d00b6325.css" integrity="sha256-i1I/FzDJIuMUNQKW2D/WZu&#43;hZRnKE2MgqT32dNALYyU=" rel="preload stylesheet" as="style">
+<script defer crossorigin="anonymous" src="/assets/js/highlight.f413e19d0714851f6474e7ee9632408e58ac146fbdbe62747134bea2fa3415e0.js" integrity="sha256-9BPhnQcUhR9kdOfuljJAjlisFG&#43;9vmJ0cTS&#43;ovo0FeA="
+    onload="hljs.initHighlightingOnLoad();"></script>
+<link rel="icon" href="https://black-desk.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://black-desk.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://black-desk.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://black-desk.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://black-desk.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --hljs-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript><link rel="stylesheet" media="all" href="https://cdnjs.cloudflare.com/ajax/libs/Han/3.3.0/han.min.css">
+<style>
+.uri:only-child {
+        display: inline-block;
+        width: 100%;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+}
+
+input[type="checkbox"] {
+        margin-right:0.2em;
+        margin-left: -1.7em;
+        width: 1.5em;
+}
+</style>
+<script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"> </script>
+<script>
+
+$(document).ready(()=>{
+
+$(".uri:only-child").each(function(){
+        if ((
+                this.nextSibling &&
+                this.nextSibling.nodeValue &&
+                this.nextSibling.nodeValue.trim()
+           ) || (
+                this.previousSibling &&
+                this.previousSibling.nodeValue &&
+                this.previousSibling.nodeValue.trim()
+        )) {
+                $(this).css("display","inline").css("white-space","break-spaces");
+        }
+});
+
+})
+</script>
+<meta property="og:title" content="只是为了把 Steam 游戏放到开始屏幕上" />
+<meta property="og:description" content="很久以前, 我有一个梦想, 我的开始菜单上能直接固定一些 steam 游戏的磁贴.
+然后我苦苦地寻找, 发现了这篇知乎文章, 然后我忍痛剁手, 花了我六块大洋, 买了这个叫 Steam Tiles 的 UWP 应用, 而这一切, 只是噩梦的开始.
+初次使用这个 UWP 应用, 它就刷新了我的三观. 一个功能如此简单的应用居然能这么卡.
+它需要读你安装 steam 游戏的目录, 然后从里面寻找合适大小的图片来制作磁贴, 也允许 用户自定义图片, 可以从 url 下载图片, 可以从本地选取图片文件, 允许用户改变图片的 位置, 大小, 以及磁贴的背景色.
+听起来很美好, 该自定义的都能自定义. 但是事实上.
+我是想破脑袋也想不出来, 为什么他读文件找图片能这么慢, 5个游戏, 他头一次找个图要 将近半个小时.
+image-20200504214634198 不仅慢, 还有可能会读不出图片来, 比如像下面这样:
+image-20200504213156290 而这个时候我唯一找到的解决方法, 就是 TMD 清除掉他对于图片的缓存, 然后再让他找一 次.
+为什么这么慢呢? 我也不知道. 任务管理器开起来一看:
+image-20200504213307798 不占用 CPU, 内存也不大, 那是磁盘读写么?
+image-20200504213452252 看起来也不是磁盘读写.那咋回事呢? 天知道.
+好在这种找图的过程在你使用这个软件的过程中只会出现一次 (当然如果你装了个新游戏, 然后想把它钉在开始菜单里面, 你又会经历一遍这个神奇的事情.) 经过几次的尝试, 我终 于可以正常的加载出图片了, 这个时候我发现了一个特别操蛋的事情." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://black-desk.github.io/post/%E5%8F%AA%E6%98%AF%E4%B8%BA%E4%BA%86%E6%8A%8A-steam-%E6%B8%B8%E6%88%8F%E6%94%BE%E5%88%B0%E5%BC%80%E5%A7%8B%E5%B1%8F%E5%B9%95%E4%B8%8A/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2022-07-10T02:23:58&#43;08:00" />
+<meta property="article:modified_time" content="2022-07-10T02:23:58&#43;08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="只是为了把 Steam 游戏放到开始屏幕上"/>
+<meta name="twitter:description" content="很久以前, 我有一个梦想, 我的开始菜单上能直接固定一些 steam 游戏的磁贴.
+然后我苦苦地寻找, 发现了这篇知乎文章, 然后我忍痛剁手, 花了我六块大洋, 买了这个叫 Steam Tiles 的 UWP 应用, 而这一切, 只是噩梦的开始.
+初次使用这个 UWP 应用, 它就刷新了我的三观. 一个功能如此简单的应用居然能这么卡.
+它需要读你安装 steam 游戏的目录, 然后从里面寻找合适大小的图片来制作磁贴, 也允许 用户自定义图片, 可以从 url 下载图片, 可以从本地选取图片文件, 允许用户改变图片的 位置, 大小, 以及磁贴的背景色.
+听起来很美好, 该自定义的都能自定义. 但是事实上.
+我是想破脑袋也想不出来, 为什么他读文件找图片能这么慢, 5个游戏, 他头一次找个图要 将近半个小时.
+image-20200504214634198 不仅慢, 还有可能会读不出图片来, 比如像下面这样:
+image-20200504213156290 而这个时候我唯一找到的解决方法, 就是 TMD 清除掉他对于图片的缓存, 然后再让他找一 次.
+为什么这么慢呢? 我也不知道. 任务管理器开起来一看:
+image-20200504213307798 不占用 CPU, 内存也不大, 那是磁盘读写么?
+image-20200504213452252 看起来也不是磁盘读写.那咋回事呢? 天知道.
+好在这种找图的过程在你使用这个软件的过程中只会出现一次 (当然如果你装了个新游戏, 然后想把它钉在开始菜单里面, 你又会经历一遍这个神奇的事情.) 经过几次的尝试, 我终 于可以正常的加载出图片了, 这个时候我发现了一个特别操蛋的事情."/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Posts",
+      "item": "https://black-desk.github.io/post/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "只是为了把 Steam 游戏放到开始屏幕上",
+      "item": "https://black-desk.github.io/post/%E5%8F%AA%E6%98%AF%E4%B8%BA%E4%BA%86%E6%8A%8A-steam-%E6%B8%B8%E6%88%8F%E6%94%BE%E5%88%B0%E5%BC%80%E5%A7%8B%E5%B1%8F%E5%B9%95%E4%B8%8A/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "只是为了把 Steam 游戏放到开始屏幕上",
+  "name": "只是为了把 Steam 游戏放到开始屏幕上",
+  "description": "很久以前, 我有一个梦想, 我的开始菜单上能直接固定一些 steam 游戏的磁贴.\n然后我苦苦地寻找, 发现了这篇知乎文章, 然后我忍痛剁手, 花了我六块大洋, 买了这个叫 Steam Tiles 的 UWP 应用, 而这一切, 只是噩梦的开始.\n初次使用这个 UWP 应用, 它就刷新了我的三观. 一个功能如此简单的应用居然能这么卡.\n它需要读你安装 steam 游戏的目录, 然后从里面寻找合适大小的图片来制作磁贴, 也允许 用户自定义图片, 可以从 url 下载图片, 可以从本地选取图片文件, 允许用户改变图片的 位置, 大小, 以及磁贴的背景色.\n听起来很美好, 该自定义的都能自定义. 但是事实上.\n我是想破脑袋也想不出来, 为什么他读文件找图片能这么慢, 5个游戏, 他头一次找个图要 将近半个小时.\nimage-20200504214634198 不仅慢, 还有可能会读不出图片来, 比如像下面这样:\nimage-20200504213156290 而这个时候我唯一找到的解决方法, 就是 TMD 清除掉他对于图片的缓存, 然后再让他找一 次.\n为什么这么慢呢? 我也不知道. 任务管理器开起来一看:\nimage-20200504213307798 不占用 CPU, 内存也不大, 那是磁盘读写么?\nimage-20200504213452252 看起来也不是磁盘读写.那咋回事呢? 天知道.\n好在这种找图的过程在你使用这个软件的过程中只会出现一次 (当然如果你装了个新游戏, 然后想把它钉在开始菜单里面, 你又会经历一遍这个神奇的事情.) 经过几次的尝试, 我终 于可以正常的加载出图片了, 这个时候我发现了一个特别操蛋的事情.",
+  "keywords": [
+    
+  ],
+  "articleBody": "很久以前, 我有一个梦想, 我的开始菜单上能直接固定一些 steam 游戏的磁贴.\n然后我苦苦地寻找, 发现了这篇知乎文章, 然后我忍痛剁手, 花了我六块大洋, 买了这个叫 Steam Tiles 的 UWP 应用, 而这一切, 只是噩梦的开始.\n初次使用这个 UWP 应用, 它就刷新了我的三观. 一个功能如此简单的应用居然能这么卡.\n它需要读你安装 steam 游戏的目录, 然后从里面寻找合适大小的图片来制作磁贴, 也允许 用户自定义图片, 可以从 url 下载图片, 可以从本地选取图片文件, 允许用户改变图片的 位置, 大小, 以及磁贴的背景色.\n听起来很美好, 该自定义的都能自定义. 但是事实上.\n我是想破脑袋也想不出来, 为什么他读文件找图片能这么慢, 5个游戏, 他头一次找个图要 将近半个小时.\nimage-20200504214634198 不仅慢, 还有可能会读不出图片来, 比如像下面这样:\nimage-20200504213156290 而这个时候我唯一找到的解决方法, 就是 TMD 清除掉他对于图片的缓存, 然后再让他找一 次.\n为什么这么慢呢? 我也不知道. 任务管理器开起来一看:\nimage-20200504213307798 不占用 CPU, 内存也不大, 那是磁盘读写么?\nimage-20200504213452252 看起来也不是磁盘读写.那咋回事呢? 天知道.\n好在这种找图的过程在你使用这个软件的过程中只会出现一次 (当然如果你装了个新游戏, 然后想把它钉在开始菜单里面, 你又会经历一遍这个神奇的事情.) 经过几次的尝试, 我终 于可以正常的加载出图片了, 这个时候我发现了一个特别操蛋的事情.\nimage-20200504213638142 看到那个输入 url 的框了么? 它怎么了呢? 事情是这样的. 你只要往里面打一个字, 这个 框就会实去焦点, 然后你得把你的鼠标再点击一次这个框, 才能再次打一个字母. 虽然我 知道, 一般人确实不会手打 url, 这个 bug 在你粘贴 url 进去的时候并不会出现, 但是 我也很难想象一个开发者往自己的应用里面放了一个输入框, 而他连在这个输入框里面打 字来做一下测试这种事情都没有做过.\n哦不, 也许他真的做过, 不信你接着看.\n有玩过桌面开发框架的应该都知道这个 bug 是怎么出现的, 类似输入框这种控件, 它在里 面的文字改变的时候, 会触发一个叫 Text Changed 的事件, 开发者可以配置程序, 然后 让程序在这个事件发生的时候运行一段代码. 而由于不知道什么原因, 这个 UWP 应用的这 段代码会使得输入框失去焦点, 所以这个魔性的 bug 就产生了.\n解决的办法其实也很明显, 我们其实只要把这段代码从 Text Changed 解绑, 然后绑定到比 如 Lose Focus 这种事件上去就行了.\n但是这是一个在微软应用商店上架的, 收费的, 应用软件. 我应该是看不到它的源码的. 所 以我没有办法修正这个傻逼至极的错误.\n嗯? 真的是这样么?\nimage-20200504213724438 ???\n这个老哥的心非常的大, 他居然把自己放在应用商店贩卖的应用的源码公布了! 虽然这种 操作是挺正常的. 也有一些很棒的软件在做类似的事情, 开源和收费的确不矛盾, 但是还 算是比较少见的.\n但是打开了他的 github, 我就发现这个事情非常的诡异:\nimage-20200504213838350 嗯?\nimage-20200504213915629 真的是头一回见啊.\n更有意思的是:\nimage-20200504213944643 就是说这哥们开发这玩意整整四年了, 然后这个输入框的 bug 仍然存在????\n我本着好奇的心态看了一下他的 commit, 然后我震惊了: 除了下面这八个 commit 以外,\nimage-20200504214039085 image-20200504214057873 image-20200504214111285 他的整整 146 个 commit, 都是这个画风:\nimage-20200504214125833 哇, nb, 我已经可以预见到这哥们不会写任何的注释和文档了.\n我下载代码, 把他给代码打的证书删除, 稍微调整了一下配置文件. 我就可以编译这个软件 了!\n哇哦, 那我一开始花了六块钱买这玩意不是血亏?\n算了算了.\n我们赶紧来看代码, 先把这个傻逼的 bug 修了吧.\nimage-20200504214246118 但是我眉头一皱, 发现事情并不简单, 就在上面这个图力, 输入框下面的这个下拉菜单应该 对应的是程序中的这个:\nimage-20200504214302928 但是为什么这玩意的两个选项, 他们并没有自己的名字, 而是用 1 和 2 编号呢???\n回想一下刚刚那整整 \\[146-8=132\\] 个 commit, 我释怀了, 修 bug 吧.\n果不其然, 我上面的猜测是对的, 在对应的程序里我看到了这么一 行:\nimage-20200504214320965 可以看到开发者将一个叫 CambioImagenInternet 的函数绑定到了这个输入框的 TextChanged 上.\n但是, 等一下, Cambio 这个词我不认识可能确实是因为我英语垃圾, 但是 Imagen 是个什 么鬼. 不是 Image 么?\n为了防止我需要重新回去读小学英语, 我决定查一下 Cambio 这个词:\nimage-20200504214341048 哦, 那看来不是我的问题, 而是这个老哥是个西班牙人, 看了一眼 github 主页, 果然是这 样:\nimage-20200504214410625 好吧好吧, 但是你为什么给这个框绑一个函数得先解绑呢?\n以及你这个解绑外面为什么会有一个 If Not tbImagenInternet Is Nothing 呢?\n然后我发现了一个令我感到迷惑的事情:\n这个老哥他在同一个类下面, 多次需要找到同一个控件的时候, 他每次都会写这几行代码:\nDim frame As Frame = Window.Current.Content Dim pagina As Page = frame.Content 然后再用 pagina.FindName 去直接通过这个控件的 id 找到它.\n讲个鬼故事:\nimage-20200504214441345 同一份代码里面, 上面这两句话出现了十六次.\n我的人生阅历增加了! 这个奇怪的软件里出现什么样的事情, 我都不会奇怪了吧!\n大概.\n为了搞清楚他到底为什么要这么来绑定函数, 我打了断点看了看这个程序的逻辑,\n然后我发现有的时候, 一个明明存在的控件, id 也对, 我也可以在窗口中看到这个控件的 情况下, pagine.FindName 也有可能会找不到它. 具体原理我并不明白.\n这个时候碰巧我发现了另一个 bug, 真是一波未平一波又起.\nimage-20200504214905779 上面这个是调整图片大小和位置的窗口, 如果我们选中一个游戏, 编辑大磁贴, 在这里改变 Margin 和 X 还有 Y, 然后保存并返回, 再编辑中磁贴的时候, 这里的 Margin 和 X Y 的 滑块并不会归位, 而是会保持刚刚的状态.\n? 这是初始化写错了么?\n不对啊, 这 里 是有初始化的啊?\nDim sliderImagenMargen As Slider = pagina.FindName(\"sliderPersonalizacionImagenMargen\") If Not sliderImagenMargen Is Nothing Then sliderImagenMargen.Minimum = 0 RemoveHandler sliderImagenMargen.ValueChanged, AddressOf CambiarImagenMargen AddHandler sliderImagenMargen.ValueChanged, AddressOf CambiarImagenMargen End If 难道? 第二次打开这个窗口的时候, FindName 找不到这个控件, 所以就没有清0 ?\n我大概知道这个老哥写出这段代码的心路历程了:\n我们现在来写初始化吧, 那么写初始化肯定得先用 FindName 找到对应的控件吧? 哎 呀? FindName 有的时候找不到? 找不到咋办啊? 算了算了, 找不到就不初始化了.\n关于先解绑再绑定估计是这样的:\n我现在要给这些个控件触发的事件绑定函数了! 在哪里绑呢? 在窗口初始化里面写吧, 就跟在控件初始化后面! emmm, 但是我写的这个所谓的控件初始化是每次打开窗口都会 运行的, 所以写在这里的代码会被运行多次, 但是一个事件又不能绑上多个函数, 那样 会出错的. 啊! 我只要每次都先解绑再绑定不就可以了么! 我真是个小天才.\n我真是惊了.\n经过一些调试我发现这个函数第一次运行的时候, FindName 是真的能找到所有的控件的. 所以我稍微整理了一下, 在类里面加了几个成员, 把这些控件都存了一个引用在类里面, 这 样要用的时候就不用重新 FindName 了. 同时把这个先解绑然后再绑定的神代码也给整 成了只会运行一次.\n现在这个软件已经基本能用了.\n然后我决定再来看看这里面还有什么奇葩东西.\n然后我就在这 里 看到了一个奇葩函数. 看不懂没关系, 我一开始也看不懂. 但是我花了很大力气看懂了以 后, 我被雷到了, 这是一种很神奇的快乐, 现在我来解释一下这个东西有多奇葩:\n这个函数是绑给刚才看到的那个下拉框选 inner box 还是 outer box 的. 我们可以先不管 它为什么要这么设计这个程序, 我们边看这个程序边给你大概描述一下这个函数要做的工 作是什么: 现在有两个 grid 控件, 它们一个是 gridPersonalizacionExterior, 是那 个 Outer box, 另一个是下面找的那个 gridPersonalizacionInterior, 是那个 Inner box, 看 xaml 文件可以知道.这两个东西的关系是这样的:\nOuter box |- Inner box 如果图片在 Inner box 里面, 那么应该是这样的:\nOuter box |- Inner box |- Image 而如果图片在 Outer box 里面, 作者它希望他们之间的结构变成这样:\nOuter box |- Inner box |- Image 我们一起来看看作者是怎么处理这个功能的吧.\nPrivate Sub CambiarImagenUbicacion(sender As Object, e As SelectionChangedEventArgs) Dim frame As Frame = Window.Current.Content Dim pagina As Page = frame.Content ' 上面这两句就是那重复的16遍里的其中一遍. Dim cb As ComboBox = sender Dim imagen As New ImageEx Dim gridExterior As Grid = pagina.FindName(\"gridPersonalizacionExterior\") ' 这代码是修改前的, 所以我们在这里还能看到作者用FindName来找控件. For Each hijo In gridExterior.Children ' 遍历 Outer box 的所有孩子: [ 等一下, 这是图啥, Outer box要不然是一个孩子要不然是两个孩子你快住手啊! Dim imagen2 As ImageEx = Nothing ' 创建一个 imagen2 ' 看看 Outer box 的孩子能不能赋值给 imagen2, 如果成功了说明这个孩子是一张图, 说明图片现在在 Outer box 里面 Try imagen2 = hijo Catch ex As Exception End Try If Not imagen2 Is Nothing Then imagen.Source = imagen2.Source imagen.IsCacheEnabled = imagen2.IsCacheEnabled imagen.Stretch = imagen2.Stretch ' 把试出来的imagen2里面的图片数据,赋值给imagen[ 等一下, 那你为什么不一开始就用imagen来试呢? gridExterior.Children.Remove(hijo) End If Next ' 以上同样的事情对 Inner box 再做一次, 这两个过程中总会有一个能找到那张图. Dim gridInterior As Grid = pagina.FindName(\"gridPersonalizacionInterior\") For Each hijo In gridInterior.Children Dim imagen2 As ImageEx = Nothing Try imagen2 = hijo Catch ex As Exception End Try If Not imagen2 Is Nothing Then imagen.Source = imagen2.Source imagen.IsCacheEnabled = imagen2.IsCacheEnabled imagen.Stretch = imagen2.Stretch gridInterior.Children.Remove(hijo) End If Next ' 到这里为止,我们拿到了图, 我们只要把图放到对应的框里面就写完啦! If cb.SelectedIndex = 0 Then gridInterior.Children.Add(imagen) ElseIf cb.SelectedIndex = 1 Then gridExterior.Children.Add(imagen) End If End Sub 我一时间不知道说什么好.\n我 fork 了一份, 大概修了修, 修到我能用的程度就停手了, 因为我实在是, 感觉自己的智 商受到了侮辱, 甚至折损了阳寿.项目地址在这 里, 还有很多 bug 我没管, 一开始说的 那个性能问题我也没管. 我自己编译了一份扔上去了. 要是有人想用的话可以自己查一下 怎么安装.\n是的, 为了这个开始屏幕, 我刷新了我的三观.\nimage-20200504214511318 而这一切只是为了, 把steam游戏, 放在开始屏幕上.\n",
+  "wordCount" : "676",
+  "inLanguage": "zh-cn",
+  "datePublished": "2022-07-10T02:23:58+08:00",
+  "dateModified": "2022-07-10T02:23:58+08:00",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://black-desk.github.io/post/%E5%8F%AA%E6%98%AF%E4%B8%BA%E4%BA%86%E6%8A%8A-steam-%E6%B8%B8%E6%88%8F%E6%94%BE%E5%88%B0%E5%BC%80%E5%A7%8B%E5%B1%8F%E5%B9%95%E4%B8%8A/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "RAMBLE\u0026BB",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://black-desk.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://black-desk.github.io" accesskey="h" title="RAMBLE&amp;BB (Alt + H)">RAMBLE&amp;BB</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title">
+      只是为了把 Steam 游戏放到开始屏幕上
+    </h1>
+    <div class="post-meta"><span title='2022-07-10 02:23:58 +0800 CST'>July 10, 2022</span>
+
+</div>
+  </header> 
+  <div class="post-content"><p>很久以前, 我有一个梦想, 我的开始菜单上能直接固定一些 steam
+游戏的磁贴.</p>
+<p>然后我苦苦地寻找, 发现了<a
+href="https://zhuanlan.zhihu.com/p/28416752">这篇</a>知乎文章,
+然后我忍痛剁手, 花了我六块大洋, 买了这个叫 Steam Tiles 的 UWP 应用,
+而这一切, 只是噩梦的开始.</p>
+<hr />
+<p>初次使用这个 UWP 应用, 它就刷新了我的三观.
+一个功能如此简单的应用居然能这么卡.</p>
+<p>它需要读你安装 steam 游戏的目录,
+然后从里面寻找合适大小的图片来制作磁贴, 也允许 用户自定义图片, 可以从
+url 下载图片, 可以从本地选取图片文件, 允许用户改变图片的 位置, 大小,
+以及磁贴的背景色.</p>
+<p>听起来很美好, 该自定义的都能自定义. 但是事实上.</p>
+<p>我是想破脑袋也想不出来, 为什么他读文件找图片能这么慢, 5个游戏,
+他头一次找个图要 将近半个小时.</p>
+<figure>
+<img src="https://i.loli.net/2020/05/04/gFqwyaEukvbALjJ.png"
+alt="image-20200504214634198" />
+<figcaption aria-hidden="true">image-20200504214634198</figcaption>
+</figure>
+<p>不仅慢, 还有可能会读不出图片来, 比如像下面这样:</p>
+<figure>
+<img src="https://i.loli.net/2020/05/04/xCsnIKF9TBfRwUt.png"
+alt="image-20200504213156290" />
+<figcaption aria-hidden="true">image-20200504213156290</figcaption>
+</figure>
+<p>而这个时候我唯一找到的解决方法, 就是 TMD 清除掉他对于图片的缓存,
+然后再让他找一 次.</p>
+<p>为什么这么慢呢? 我也不知道. 任务管理器开起来一看:</p>
+<figure>
+<img src="https://i.loli.net/2020/05/04/MKvWVlPTcQGzHOr.png"
+alt="image-20200504213307798" />
+<figcaption aria-hidden="true">image-20200504213307798</figcaption>
+</figure>
+<p>不占用 CPU, 内存也不大, 那是磁盘读写么?</p>
+<figure>
+<img src="https://i.loli.net/2020/05/04/eKTNusvSVZ3Co9m.png"
+alt="image-20200504213452252" />
+<figcaption aria-hidden="true">image-20200504213452252</figcaption>
+</figure>
+<p>看起来也不是磁盘读写.那咋回事呢? 天知道.</p>
+<p>好在这种找图的过程在你使用这个软件的过程中只会出现一次
+(当然如果你装了个新游戏, 然后想把它钉在开始菜单里面,
+你又会经历一遍这个神奇的事情.) 经过几次的尝试, 我终
+于可以正常的加载出图片了, 这个时候我发现了一个特别操蛋的事情.</p>
+<figure>
+<img src="https://i.loli.net/2020/05/04/3tEiTaeurcUo8lC.png"
+alt="image-20200504213638142" />
+<figcaption aria-hidden="true">image-20200504213638142</figcaption>
+</figure>
+<p>看到那个输入 url 的框了么? 它怎么了呢? 事情是这样的.
+你只要往里面打一个字, 这个 框就会实去焦点,
+然后你得把你的鼠标再点击一次这个框, 才能再次打一个字母. 虽然我 知道,
+一般人确实不会手打 url, 这个 bug 在你粘贴 url 进去的时候并不会出现, 但是
+我也很难想象一个开发者往自己的应用里面放了一个输入框,
+而他连在这个输入框里面打 字来做一下测试这种事情都没有做过.</p>
+<p>哦不, 也许他真的做过, 不信你接着看.</p>
+<hr />
+<p>有玩过桌面开发框架的应该都知道这个 bug 是怎么出现的,
+类似输入框这种控件, 它在里 面的文字改变的时候, 会触发一个叫 Text Changed
+的事件, 开发者可以配置程序, 然后 让程序在这个事件发生的时候运行一段代码.
+而由于不知道什么原因, 这个 UWP 应用的这 段代码会使得输入框失去焦点,
+所以这个魔性的 bug 就产生了.</p>
+<p>解决的办法其实也很明显, 我们其实只要把这段代码从 Text Changed 解绑,
+然后绑定到比 如 Lose Focus 这种事件上去就行了.</p>
+<p>但是这是一个在微软应用商店上架的, 收费的, 应用软件.
+我应该是看不到它的源码的. 所 以我没有办法修正这个傻逼至极的错误.</p>
+<p>嗯? 真的是这样么?</p>
+<figure>
+<img src="https://i.loli.net/2020/05/04/hLrUG1EKqBIjus3.png"
+alt="image-20200504213724438" />
+<figcaption aria-hidden="true">image-20200504213724438</figcaption>
+</figure>
+<p>???</p>
+<hr />
+<p>这个老哥的心非常的大, 他居然把自己放在应用商店贩卖的应用的源码公布了!
+虽然这种 操作是挺正常的. 也有一些很棒的软件在做类似的事情,
+开源和收费的确不矛盾, 但是还 算是比较少见的.</p>
+<p>但是打开了他的 github, 我就发现这个事情非常的诡异:</p>
+<figure>
+<img src="https://i.loli.net/2020/05/04/reYa3s52xMAi8fl.png"
+alt="image-20200504213838350" />
+<figcaption aria-hidden="true">image-20200504213838350</figcaption>
+</figure>
+<p>嗯?</p>
+<figure>
+<img src="https://i.loli.net/2020/05/04/5cRrqLIBm4n9ugA.png"
+alt="image-20200504213915629" />
+<figcaption aria-hidden="true">image-20200504213915629</figcaption>
+</figure>
+<p>真的是头一回见啊.</p>
+<p>更有意思的是:</p>
+<figure>
+<img src="https://i.loli.net/2020/05/04/Y9M78IkXGVO41eD.png"
+alt="image-20200504213944643" />
+<figcaption aria-hidden="true">image-20200504213944643</figcaption>
+</figure>
+<p>就是说这哥们开发这玩意整整四年了, 然后这个输入框的 bug
+仍然存在????</p>
+<p>我本着好奇的心态看了一下他的 commit, 然后我震惊了: 除了下面这八个
+commit 以外,</p>
+<figure>
+<img src="https://i.loli.net/2020/05/04/FYkbGqUANRahHwZ.png"
+alt="image-20200504214039085" />
+<figcaption aria-hidden="true">image-20200504214039085</figcaption>
+</figure>
+<figure>
+<img src="https://i.loli.net/2020/05/04/wz7ycOiBAlQkmeo.png"
+alt="image-20200504214057873" />
+<figcaption aria-hidden="true">image-20200504214057873</figcaption>
+</figure>
+<figure>
+<img src="https://i.loli.net/2020/05/04/8r6fYhjtcZb4p2U.png"
+alt="image-20200504214111285" />
+<figcaption aria-hidden="true">image-20200504214111285</figcaption>
+</figure>
+<p>他的整整 146 个 commit, 都是这个画风:</p>
+<figure>
+<img src="https://i.loli.net/2020/05/04/FhQIHmpbuXrCU9l.png"
+alt="image-20200504214125833" />
+<figcaption aria-hidden="true">image-20200504214125833</figcaption>
+</figure>
+<p>哇, nb, 我已经可以预见到这哥们不会写任何的注释和文档了.</p>
+<hr />
+<p>我下载代码, 把他给代码打的证书删除, 稍微调整了一下配置文件.
+我就可以编译这个软件 了!</p>
+<p>哇哦, 那我一开始花了六块钱买这玩意不是血亏?</p>
+<p>算了算了.</p>
+<p>我们赶紧来看代码, 先把这个傻逼的 bug 修了吧.</p>
+<figure>
+<img src="https://i.loli.net/2020/05/04/RkWowNbLzZOjGuh.png"
+alt="image-20200504214246118" />
+<figcaption aria-hidden="true">image-20200504214246118</figcaption>
+</figure>
+<p>但是我眉头一皱, 发现事情并不简单, 就在上面这个图力,
+输入框下面的这个下拉菜单应该 对应的是程序中的这个:</p>
+<figure>
+<img src="https://i.loli.net/2020/05/04/9VpnmC2JEjS5gTK.png"
+alt="image-20200504214302928" />
+<figcaption aria-hidden="true">image-20200504214302928</figcaption>
+</figure>
+<p>但是为什么这玩意的两个选项, 他们并没有自己的名字, 而是用 1 和 2
+编号呢???</p>
+<p>回想一下刚刚那整整 <span class="math display">\[146-8=132\]</span> 个
+commit, 我释怀了, 修 bug 吧.</p>
+<p>果不其然, 我上面的猜测是对的, 在对应的程序里我看到了这么<a
+href="%5Bhttps://github.com/pepeizq/Steam-Tiles/blob/master/Steam%20Tiles/Modulos/Tiles/Personalizacion.vb#L125%5D">一
+行</a>:</p>
+<figure>
+<img src="https://i.loli.net/2020/05/04/Oknv6D8GuQrSHKm.png"
+alt="image-20200504214320965" />
+<figcaption aria-hidden="true">image-20200504214320965</figcaption>
+</figure>
+<p>可以看到开发者将一个叫 <code>CambioImagenInternet</code>
+的函数绑定到了这个输入框的 <code>TextChanged</code> 上.</p>
+<p>但是, 等一下, Cambio 这个词我不认识可能确实是因为我英语垃圾, 但是
+Imagen 是个什 么鬼. 不是 Image 么?</p>
+<p>为了防止我需要重新回去读小学英语, 我决定查一下 Cambio 这个词:</p>
+<figure>
+<img src="https://i.loli.net/2020/05/04/1R3J9aSqXPuNhbc.png"
+alt="image-20200504214341048" />
+<figcaption aria-hidden="true">image-20200504214341048</figcaption>
+</figure>
+<p>哦, 那看来不是我的问题, 而是这个老哥是个西班牙人, 看了一眼 github
+主页, 果然是这 样:</p>
+<figure>
+<img src="https://i.loli.net/2020/05/04/KmuysZUVv7YH1Gj.png"
+alt="image-20200504214410625" />
+<figcaption aria-hidden="true">image-20200504214410625</figcaption>
+</figure>
+<p>好吧好吧, 但是你为什么给这个框绑一个函数得先解绑呢?</p>
+<p>以及你这个解绑外面为什么会有一个
+<code>If Not tbImagenInternet Is Nothing</code> 呢?</p>
+<p>然后我发现了一个令我感到迷惑的事情:</p>
+<p>这个老哥他在同一个类下面, 多次需要找到同一个控件的时候,
+他每次都会写这几行代码:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode vb"><code class="sourceCode monobasic"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">Dim</span> frame <span class="kw">As</span> Frame = Window.Current.Content</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">Dim</span> pagina <span class="kw">As</span> Page = frame.Content</span></code></pre></div>
+<p>然后再用 <code>pagina.FindName</code> 去直接通过这个控件的 id
+找到它.</p>
+<p>讲个鬼故事:</p>
+<figure>
+<img src="https://i.loli.net/2020/05/04/IW8QvDCZfqNhjPw.png"
+alt="image-20200504214441345" />
+<figcaption aria-hidden="true">image-20200504214441345</figcaption>
+</figure>
+<p>同一份代码里面, 上面这两句话出现了十六次.</p>
+<p>我的人生阅历增加了! 这个奇怪的软件里出现什么样的事情,
+我都不会奇怪了吧!</p>
+<p>大概.</p>
+<hr />
+<p>为了搞清楚他到底为什么要这么来绑定函数,
+我打了断点看了看这个程序的逻辑,</p>
+<p>然后我发现有的时候, 一个明明存在的控件, id 也对,
+我也可以在窗口中看到这个控件的 情况下, <code>pagine.FindName</code>
+也有可能会找不到它. 具体原理我并不明白.</p>
+<p>这个时候碰巧我发现了另一个 bug, 真是一波未平一波又起.</p>
+<figure>
+<img src="https://i.loli.net/2020/05/04/E4fS1lcsz7FCvAu.png"
+alt="image-20200504214905779" />
+<figcaption aria-hidden="true">image-20200504214905779</figcaption>
+</figure>
+<p>上面这个是调整图片大小和位置的窗口, 如果我们选中一个游戏, 编辑大磁贴,
+在这里改变 Margin 和 X 还有 Y, 然后保存并返回, 再编辑中磁贴的时候,
+这里的 Margin 和 X Y 的 滑块并不会归位, 而是会保持刚刚的状态.</p>
+<p>? 这是初始化写错了么?</p>
+<p>不对啊, <a
+href="https://github.com/pepeizq/Steam-Tiles/blob/master/Steam%20Tiles/Modulos/Tiles/Personalizacion.vb#L168">这
+里</a> 是有初始化的啊?</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode vb"><code class="sourceCode monobasic"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">Dim</span> sliderImagenMargen <span class="kw">As</span> Slider = pagina.FindName(<span class="st">&quot;sliderPersonalizacionImagenMargen&quot;</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">If Not</span> sliderImagenMargen Is <span class="kw">Nothing</span> <span class="kw">Then</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    sliderImagenMargen.Minimum = 0</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    RemoveHandler sliderImagenMargen.ValueChanged, AddressOf CambiarImagenMargen</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">AddHandler</span> sliderImagenMargen.ValueChanged, AddressOf CambiarImagenMargen</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="kw">End If</span></span></code></pre></div>
+<p>难道? 第二次打开这个窗口的时候, <code>FindName</code> 找不到这个控件,
+所以就没有清0 ?</p>
+<p>我大概知道这个老哥写出这段代码的心路历程了:</p>
+<blockquote>
+<p>我们现在来写初始化吧, 那么写初始化肯定得先用 <code>FindName</code>
+找到对应的控件吧? 哎 呀? <code>FindName</code> 有的时候找不到?
+找不到咋办啊? 算了算了, 找不到就不初始化了.</p>
+</blockquote>
+<p>关于先解绑再绑定估计是这样的:</p>
+<blockquote>
+<p>我现在要给这些个控件触发的事件绑定函数了! 在哪里绑呢?
+在窗口初始化里面写吧, 就跟在控件初始化后面! emmm,
+但是我写的这个所谓的控件初始化是每次打开窗口都会 运行的,
+所以写在这里的代码会被运行多次, 但是一个事件又不能绑上多个函数, 那样
+会出错的. 啊! 我只要每次都先解绑再绑定不就可以了么! 我真是个小天才.</p>
+</blockquote>
+<p>我真是惊了.</p>
+<hr />
+<p>经过一些调试我发现这个函数第一次运行的时候, <code>FindName</code>
+是真的能找到所有的控件的. 所以我稍微整理了一下, 在类里面加了几个成员,
+把这些控件都存了一个引用在类里面, 这 样要用的时候就不用重新
+<code>FindName</code> 了. 同时把这个先解绑然后再绑定的神代码也给整
+成了只会运行一次.</p>
+<p>现在这个软件已经基本能用了.</p>
+<p>然后我决定再来看看这里面还有什么奇葩东西.</p>
+<p>然后我就在<a
+href="https://github.com/pepeizq/Steam-Tiles/blob/master/Steam%20Tiles/Modulos/Tiles/Personalizacion.vb#L467">这
+里</a> 看到了一个奇葩函数. 看不懂没关系, 我一开始也看不懂.
+但是我花了很大力气看懂了以 后, 我被雷到了, 这是一种很神奇的快乐,
+现在我来解释一下这个东西有多奇葩:</p>
+<p>这个函数是绑给刚才看到的那个下拉框选 inner box 还是 outer box 的.
+我们可以先不管 它为什么要这么设计这个程序,
+我们边看这个程序边给你大概描述一下这个函数要做的工 作是什么: 现在有两个
+grid 控件, 它们一个是 <code>gridPersonalizacionExterior</code>, 是那 个
+Outer box, 另一个是下面找的那个
+<code>gridPersonalizacionInterior</code>, 是那个 Inner box, 看 xaml
+文件可以知道.这两个东西的关系是这样的:</p>
+<pre><code>Outer box
+|- Inner box</code></pre>
+<p>如果图片在 Inner box 里面, 那么应该是这样的:</p>
+<pre><code>Outer box
+|- Inner box
+   |- Image</code></pre>
+<p>而如果图片在 Outer box 里面, 作者它希望他们之间的结构变成这样:</p>
+<pre><code>Outer box
+|- Inner box
+|- Image</code></pre>
+<p>我们一起来看看作者是怎么处理这个功能的吧.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode vb"><code class="sourceCode monobasic"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">Private</span> <span class="kw">Sub </span>CambiarImagenUbicacion(sender <span class="kw">As</span> <span class="dt">Object</span>, e <span class="kw">As</span> SelectionChangedEventArgs)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>   </span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>   <span class="kw">Dim</span> frame <span class="kw">As</span> Frame = Window.Current.Content</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>   <span class="kw">Dim</span> pagina <span class="kw">As</span> Page = frame.Content</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>   <span class="co">&#39; 上面这两句就是那重复的16遍里的其中一遍.</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>   <span class="kw">Dim</span> cb <span class="kw">As</span> ComboBox = sender</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>   <span class="kw">Dim</span> imagen <span class="kw">As</span> <span class="kw">New</span> ImageEx</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>   <span class="kw">Dim</span> gridExterior <span class="kw">As</span> Grid = pagina.FindName(<span class="st">&quot;gridPersonalizacionExterior&quot;</span>)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>   <span class="co">&#39; 这代码是修改前的, 所以我们在这里还能看到作者用FindName来找控件.</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>   </span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>   <span class="kw">For </span>Each hijo In gridExterior.Children</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>       <span class="co">&#39; 遍历 Outer box 的所有孩子: [ 等一下, 这是图啥, Outer box要不然是一个孩子要不然是两个孩子你快住手啊!</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>       <span class="kw">Dim</span> imagen2 <span class="kw">As</span> ImageEx = <span class="kw">Nothing</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>       <span class="co">&#39; 创建一个 imagen2</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>       <span class="co">&#39; 看看 Outer box 的孩子能不能赋值给 imagen2, 如果成功了说明这个孩子是一张图, 说明图片现在在 Outer box 里面</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>       <span class="kw">Try</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>           imagen2 = hijo</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>       </span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>       <span class="kw">Catch</span> ex <span class="kw">As</span> <span class="dt">Exception</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>       <span class="kw">End Try</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>       <span class="kw">If Not</span> imagen2 Is <span class="kw">Nothing</span> <span class="kw">Then</span> </span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>           imagen.Source = imagen2.Source</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>           imagen.IsCacheEnabled = imagen2.IsCacheEnabled</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>           imagen.Stretch = imagen2.Stretch</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>    <span class="co">&#39; 把试出来的imagen2里面的图片数据,赋值给imagen[ 等一下, 那你为什么不一开始就用imagen来试呢?</span></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>           gridExterior.Children.Remove(hijo)</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>       <span class="kw">End If</span></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>   <span class="kw">Next</span></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>   <span class="co">&#39; 以上同样的事情对 Inner box 再做一次, 这两个过程中总会有一个能找到那张图.</span></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>   <span class="kw">Dim</span> gridInterior <span class="kw">As</span> Grid = pagina.FindName(<span class="st">&quot;gridPersonalizacionInterior&quot;</span>)</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>   <span class="kw">For </span>Each hijo In gridInterior.Children</span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>       <span class="kw">Dim</span> imagen2 <span class="kw">As</span> ImageEx = <span class="kw">Nothing</span></span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>       <span class="kw">Try</span></span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>           imagen2 = hijo</span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>       <span class="kw">Catch</span> ex <span class="kw">As</span> <span class="dt">Exception</span></span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a>       <span class="kw">End Try</span></span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>       <span class="kw">If Not</span> imagen2 Is <span class="kw">Nothing</span> <span class="kw">Then</span></span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a>           imagen.Source = imagen2.Source</span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>           imagen.IsCacheEnabled = imagen2.IsCacheEnabled</span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>           imagen.Stretch = imagen2.Stretch</span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a>           gridInterior.Children.Remove(hijo)</span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a>       <span class="kw">End If</span></span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a>   <span class="kw">Next</span></span>
+<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a>   <span class="co">&#39; 到这里为止,我们拿到了图, 我们只要把图放到对应的框里面就写完啦!</span></span>
+<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a>   <span class="kw">If </span>cb.SelectedIndex = 0 <span class="kw">Then</span></span>
+<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a>       gridInterior.Children.Add(imagen)</span>
+<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a>   ElseIf cb.SelectedIndex = 1 <span class="kw">Then</span></span>
+<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a>       gridExterior.Children.Add(imagen)</span>
+<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a>   <span class="kw">End If</span></span>
+<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a><span class="kw">End Sub</span></span></code></pre></div>
+<p>我一时间不知道说什么好.</p>
+<hr />
+<p>我 fork 了一份, 大概修了修, 修到我能用的程度就停手了, 因为我实在是,
+感觉自己的智 商受到了侮辱, 甚至折损了阳寿.项目地址在<a
+href="https://github.com/black-desk/Steam-Tiles">这 里</a>, 还有很多 bug
+我没管, 一开始说的 那个性能问题我也没管. 我自己编译了一份扔上去了.
+要是有人想用的话可以自己查一下 怎么安装.</p>
+<p>是的, 为了这个开始屏幕, 我刷新了我的三观.</p>
+<figure>
+<img src="https://i.loli.net/2020/05/04/AmuqEhfIndWBOgi.png"
+alt="image-20200504214511318" />
+<figcaption aria-hidden="true">image-20200504214511318</figcaption>
+</figure>
+<p>而这一切只是为了, 把steam游戏, 放在开始屏幕上.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2022 <a href="https://black-desk.github.io">RAMBLE&amp;BB</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a><script src="https://cdnjs.cloudflare.com/ajax/libs/Han/3.3.0/han.min.js"></script>
+
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>
+

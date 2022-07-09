@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>RAMBLE&amp;BB</title>
+    <link>https://black-desk.github.io/</link>
+    <description>Recent content on RAMBLE&amp;BB</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sun, 10 Jul 2022 02:23:58 +0800</lastBuildDate><atom:link href="https://black-desk.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>About</title>
+      <link>https://black-desk.github.io/about/</link>
+      <pubDate>Sun, 10 Jul 2022 02:23:58 +0800</pubDate>
+      
+      <guid>https://black-desk.github.io/about/</guid>
+      <description>关于 正文测试</description>
+    </item>
+    
+    <item>
+      <title>lambda</title>
+      <link>https://black-desk.github.io/post/lambda/</link>
+      <pubDate>Sun, 10 Jul 2022 02:23:58 +0800</pubDate>
+      
+      <guid>https://black-desk.github.io/post/lambda/</guid>
+      <description>这里整理一些关于c++中的匿名函数的知识.
+《C++ primer》上有的内容就不在重述了.这里重点讲一些primer上可能没有的东西.
+捕获的时机 primer 向我们介绍到: 有两种捕获变量的方式, 值捕获和引用捕获. 其中:
+…
+与参数不同,被捕获的变量的值是在lambda创建时拷贝,而不是调用时拷贝
+…
+如果我们采用引用方式捕获一个变量,就必须确保被引用的对象在lambda执行的时候是存 在的.lambda捕获的都是局部变量,这些变量在函数结束后就不复存在了.
+…
+我们看一段代码:
+auto funtionTimesMod1(int mod) { int variableA = mod; auto f = [variableA](int a, int b) { return a % variableA * b % variableA; }; return f; } void test1() { cout &amp;lt;&amp;lt; &amp;quot;---test1---&amp;quot; &amp;lt;&amp;lt; endl; int a = 10, b = 20, c = 7; auto times = funtionTimesMod1(c); cout &amp;lt;&amp;lt; times(a, b) &amp;lt;&amp;lt; endl; } 这里funtionTimesMod1(int mod)返回一个签名为int(int, int)的函数,这个函数计算 两个参数相乘对mod取模的结果.</description>
+    </item>
+    
+    <item>
+      <title>Shadowsocks (一) 主循环</title>
+      <link>https://black-desk.github.io/post/shadowsocks1/</link>
+      <pubDate>Sun, 10 Jul 2022 02:23:58 +0800</pubDate>
+      
+      <guid>https://black-desk.github.io/post/shadowsocks1/</guid>
+      <description>这里简单分析一下Shadowsocks这个软件的源码.
+因为网上一直有声音认为其源码质量不错.刚好最近在学一些服务器编程相关的知识,所以就 来简单分析一下它.
+同时由于希望能获得一些阅读源码的经验. 这里会简单记录我读源码的心路历程.
+目录结构 首先我们来tree一下,惯例,测试相关的文件就省略了
+❯ tree . ├── CHANGES ├── CONTRIBUTING.md ├── Dockerfile ├── LICENSE ├── MANIFEST.in ├── README.md ├── README.rst ├── config.json.example ├── debian │ ├── changelog │ ├── compat │ ├── config.json │ ├── control │ ├── copyright │ ├── docs │ ├── init.d │ ├── install │ ├── rules │ ├── shadowsocks.default │ ├── shadowsocks.manpages │ ├── source │ │ └── format │ ├── sslocal.</description>
+    </item>
+    
+    <item>
+      <title>记一个沙雕软件的破解</title>
+      <link>https://black-desk.github.io/post/overgrive/</link>
+      <pubDate>Sun, 10 Jul 2022 02:23:58 +0800</pubDate>
+      
+      <guid>https://black-desk.github.io/post/overgrive/</guid>
+      <description>本文是一篇日记性质的碎碎念,唠叨和啰嗦在所难免,请见谅.
+故事是这样的,我突然想要一个能够在ubuntu上同步Google Drive的软件.我需要这个软件能 够监控我磁盘上的文件变化,一旦文件变化了就上传;当然Google Drive上的文件要是发生 了变化,也得能够同步到我的磁盘上.
+本来以为RClone可以,但是后来发现它只能单向同步,相当于是个 备份工具,不能够满足我的要求.
+其实我也不希望搞那种很专业的工具,能有谷歌自己在Windows上做的那个”备份与同步” 那 点功能,其实就可以了.配置最好也不要太麻烦.
+所以我找到了Insync,这是一个支持OneDrive和Google Drive的同步客户端.并不开源,而且售价有点高,要40刀.
+我暂时用不到OneDrive,而且这个钱说实话是不想花的(主要还是实在太贵了.
+于是我转头又找到了OverGrive,这是一个南非的网站(/组织?)搞的一个Google Drive客户 端,也不免费,但是只要5刀了,勉强可以接受.
+于是我拿出了我办的浦发双币visa卡.这张卡我办完了以后当时拿来尝试绑Google Play没绑 上,所以就一直没用上.不过不用公本费,也没有年金,更没有额度,我只能用支付宝,或者其 他银行卡往里面存钱,之后才能消费美元.
+这下终于算是派上了用场.
+然后迎接我的就是付款失败.里面的钱明明够啊?为啥呢?
+打客服电话问了一下,说是这个商户被判定为有可能是投资目标之类的东西,所以被限制交易 了.啊这(
+那没什么办法,我就淘宝上找了个paypal代付.
+结果24h过去了,我仍然没有从我的邮降收到我的激活码邮件,我非常确定没有在垃圾桶里.
+当然这个软件是有试用版的,有14天的试用期,可能是开发者认为只要14天以内发激活码就行 了么???
+不过,由于这个软件存在一些启动过程中的问题,所以我稍微研究了一下它,发现这是一个 python写的东西,于是我用uncompyle6,给它反编译了一下,看到了源码.
+不过反编译出来的源码并不能正常运行,存在一些问题,应该是反编译的时候控制流识别出错 了.
+但是我却因此能够看到它的激活流程:
+def on_activation_button(widget): global licenseDisplay global splashProgressBar global splashWindow if &amp;#39;ProgressBar&amp;#39; in str(splashGrid.get_child_at(0, 4)): Gtk.Container.remove(splashGrid, splashProgressBar) splashGrid.attach(splashEntry, 0, 4, 2, 1) splashEntry.set_tooltip_text(_(&amp;#39;Copy and Paste your&amp;#39;) + &amp;#39; &amp;#39; + appDisplayName + &amp;#39; &amp;#39; + _(&amp;#39;Activation code&amp;#39;)) splashEntry.set_placeholder_text(_(&amp;#39;Enter Activation Code&amp;#39;)) splashLabel3.</description>
+    </item>
+    
+    <item>
+      <title>麻将图片生成器</title>
+      <link>https://black-desk.github.io/post/mahjim/</link>
+      <pubDate>Sun, 10 Jul 2022 02:23:58 +0800</pubDate>
+      
+      <guid>https://black-desk.github.io/post/mahjim/</guid>
+      <description>这两天由于拿到了一个麻将图包,运用了一些编译原理课上学的知识,动手实现了一个简单的 麻将图片生成器.
+项目地址在这里,同时也在自己的服务器上部 署了一个demo.
+这里简单聊聊这个小工具.
+名字 Mahjong,是麻将这个游戏的一种英文表示方法,由于雀魂叫majsoul,这里就只用到j为止,加 上图片image的im,就成了mahjim, 这个命名可以说是很没有新意了.
+思路 基础 首先要解决的就是如何用字符串表示麻将的问题.天凤有比较完整的记牌方 式:
+- m=萬子, p=筒子, s=索子, z=字牌, 0=赤 - 一般形=４面子１雀頭 / 標準形=一般形 ＋七対形＋国士形 - ツモはその時点で使用していない牌をランダムに選択します - 有効牌をクリックすると打牌後にその牌をツモ牌として表示します - (n*3+2)枚で開 始：(n*3+2)枚目をツモ牌として表示 - (n*3+1)枚で開始：ツモはページのロード時 に毎回変化 - 和了役の判定はありません - 暗槓はできません
+但是这套规则只是天风用来计算牌效的小程序使用的,并不能用来表示由于吃碰杠出现的牌 横置情况.
+而且需要注意的是,天凤使用的这一套标记法,面对字牌并不那么方便,1~7z分别代表的是东 南西北白发中,由于日麻和国内的三元牌顺序并不同,所以需要一定的适应.
+以这个为基础,我们可以考虑在牌前面加上前缀来表示牌的情况,实际上对于输出图片这个需 求而言,任何一张麻将一共就4种状态,正常竖置,横置,横置加杠,翻面.其中翻面我们可以考 虑直接输出一张背面的图片,所以可以看作是一种特殊的牌.如果采用_来表示牌的横 置,^表示牌加杠,那么就形成了我采取的这种方法来表示一张正常的牌:
+pre+num+class 其中pre表示一个前缀,可以是_或者^,也可以没有,用来表示牌的摆放方式.num表示 牌的点数,class用来表示牌的种类,可以是p,s,m,z.
+但是每个牌都这么写就太烦了,我们需要一些简写的方式.
+很容易想到的就是class可以合并,比如123s应该和1s2s3s是等价的,这样也不会有什么 歧义.
+字牌 可以看出,这个记牌方式对于字牌来说非常不友好,而且按照上面的想法进行了缩写之后,国 标的春夏秋冬梅兰竹菊加进来以后,字牌的总数会超过10种.那么这样的缩写就会有问题了.
+简单的解决方式就是直接用汉字来输入字牌,那么这样的话,类似中中中,白白白这种经常出 现的组合又显得很不方便.所以我们也可以简单的想到一个这样的缩写:3中=中中中,仔细 想想就会发现这个缩写和之前的数字牌表示方式是不冲突的.
+风格 由于图包中的麻将区分国标和日麻,我们还需要一个额外的设置,来区分cn和jp,简单起见,我 们就直接在整个字符串的开头放上一个cn|或者jp|来区分就可以了.
+文法 我们做了这样的设计之后,基本整理一下就可以得出文法了:
+input -&amp;gt; style + &amp;quot;|&amp;quot; + majs | majs // 旧 input -&amp;gt; majs style -&amp;gt; &amp;quot;cn&amp;quot; | &amp;quot;jp&amp;quot; 国标/日麻 // 旧 majs -&amp;gt; group + majs | empty 描述麻将牌的字符串 group -&amp;gt; ps + class | p + Z 按照牌的种类将牌分组, 比如 &amp;quot;123s456w3中&amp;quot; 有3个group, &amp;quot;123s&amp;quot; &amp;quot;456w&amp;quot; &amp;quot;3中&amp;quot; F -&amp;gt; &amp;quot;东&amp;quot; | &amp;quot;南&amp;quot; | &amp;quot;西&amp;quot; | &amp;quot;北&amp;quot; | &amp;quot;白&amp;quot; | &amp;quot;发&amp;quot; | &amp;quot;中&amp;quot; | &amp;quot;+&amp;quot; | .</description>
+    </item>
+    
+    <item>
+      <title>只是为了把 Steam 游戏放到开始屏幕上</title>
+      <link>https://black-desk.github.io/post/%E5%8F%AA%E6%98%AF%E4%B8%BA%E4%BA%86%E6%8A%8A-steam-%E6%B8%B8%E6%88%8F%E6%94%BE%E5%88%B0%E5%BC%80%E5%A7%8B%E5%B1%8F%E5%B9%95%E4%B8%8A/</link>
+      <pubDate>Sun, 10 Jul 2022 02:23:58 +0800</pubDate>
+      
+      <guid>https://black-desk.github.io/post/%E5%8F%AA%E6%98%AF%E4%B8%BA%E4%BA%86%E6%8A%8A-steam-%E6%B8%B8%E6%88%8F%E6%94%BE%E5%88%B0%E5%BC%80%E5%A7%8B%E5%B1%8F%E5%B9%95%E4%B8%8A/</guid>
+      <description>很久以前, 我有一个梦想, 我的开始菜单上能直接固定一些 steam 游戏的磁贴.
+然后我苦苦地寻找, 发现了这篇知乎文章, 然后我忍痛剁手, 花了我六块大洋, 买了这个叫 Steam Tiles 的 UWP 应用, 而这一切, 只是噩梦的开始.
+初次使用这个 UWP 应用, 它就刷新了我的三观. 一个功能如此简单的应用居然能这么卡.
+它需要读你安装 steam 游戏的目录, 然后从里面寻找合适大小的图片来制作磁贴, 也允许 用户自定义图片, 可以从 url 下载图片, 可以从本地选取图片文件, 允许用户改变图片的 位置, 大小, 以及磁贴的背景色.
+听起来很美好, 该自定义的都能自定义. 但是事实上.
+我是想破脑袋也想不出来, 为什么他读文件找图片能这么慢, 5个游戏, 他头一次找个图要 将近半个小时.
+image-20200504214634198 不仅慢, 还有可能会读不出图片来, 比如像下面这样:
+image-20200504213156290 而这个时候我唯一找到的解决方法, 就是 TMD 清除掉他对于图片的缓存, 然后再让他找一 次.
+为什么这么慢呢? 我也不知道. 任务管理器开起来一看:
+image-20200504213307798 不占用 CPU, 内存也不大, 那是磁盘读写么?
+image-20200504213452252 看起来也不是磁盘读写.那咋回事呢? 天知道.
+好在这种找图的过程在你使用这个软件的过程中只会出现一次 (当然如果你装了个新游戏, 然后想把它钉在开始菜单里面, 你又会经历一遍这个神奇的事情.) 经过几次的尝试, 我终 于可以正常的加载出图片了, 这个时候我发现了一个特别操蛋的事情.</description>
+    </item>
+    
+  </channel>
+</rss>

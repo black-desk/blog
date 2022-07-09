@@ -1,0 +1,16 @@
+baseURL = 'https://black-desk.github.io'
+languageCode = 'zh-cn'
+defaultContentLanguage = 'zh-cn'
+title = 'RAMBLE&BB'
+theme = 'PaperMod'
+[markup]
+        defaultMarkdownHandler = 'pandoc'
+[security]
+        [security.exec]
+                allow = [
+                        '^dart-sass-embedded$',
+                        '^go$',
+                        '^npx$',
+                        '^postcss$',
+                        '^pandoc$'
+                ]

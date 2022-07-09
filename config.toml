@@ -1,0 +1,4 @@
+baseURL = 'https://black-desk.github.io'
+languageCode = 'zh-cn'
+title = 'RAMBLE&BB'
+theme = 'PaperMod'

@@ -1,0 +1,191 @@
+<!doctype html><html lang=zh-cn dir=auto class=han-init>
+<head><meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge">
+<meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no">
+<meta name=robots content="index, follow">
+<title>麻将图片生成器 | RAMBLE&BB</title>
+<meta name=keywords content>
+<meta name=description content="这两天由于拿到了一个麻将图包,运用了一些编译原理课上学的知识,动手实现了一个简单的 麻将图片生成器. 项目地址在[这里](https://github.com/black-desk/mahjim),同时也在自己的服务器上部 署了一个[demo](https://mj.black-desk.cn). 这里简单聊聊这个小工具. ## 名字 Mahjong,是麻将这个游戏的一种英文表示方法,由于雀魂叫majsoul,这里就只用到j为止,加 上图片image的im,就成了mahjim, 这个命名可以说是很没有新意了. ## 思路 ### 基础 首先要解决的就是如何用字符串表示麻将的问题.天凤有比较完整的[记牌方 式][==link1==]:  \- m=萬子, p=筒子, s=索子, z=字牌, 0=赤 - 一般形=４面子１雀頭 / 標準形=一般形  ＋七対形＋国士形 - ツモはその時点で使用していない牌をランダムに選択します -  有効牌をクリックすると打牌後にその牌をツモ牌として表示します - (n\*3+2)枚で開  始：(n\*3+2)枚目をツモ牌として表示 - (n\*3+1)枚で開始：ツモはページのロード時  に毎回変化 - 和了役の判定はありません - 暗槓はできません 但是这套规则只是天风用来计算牌效的小程序使用的,并不能用来表示由于吃碰杠出现的牌 横置情况. 而且需要注意的是,天凤使用的这一套标记法,面对字牌并不那么方便,1\~7z分别代表的是东 南西北白发中,由于日麻和国内的三元牌顺序并不同,所以需要一定的适应. 以这个为基础,我们可以考虑在牌前面加上前缀来表示牌的情况,实际上对于输出图片这个需 求而言,任何一张麻将一共就4种状态,正常竖置,横置,横置加杠,翻面.其中翻面我们可以考 虑直接输出一张背面的图片,所以可以看作是一种特殊的牌.如果采用`_`来表示牌的横 置,`^`表示牌加杠,那么就形成了我采取的这种方法来表示一张正常的牌: pre+num+class 其中`pre`表示一个前缀,可以是`_`或者`^`,也可以没有,用来表示牌的摆放方式.`num`表示 牌的点数,`class`用来表示牌的种类,可以是`p`,`s`,`m`,`z`. 但是每个牌都这么写就太烦了,我们需要一些简写的方式. 很容易想到的就是class可以合并,比如`123s`应该和`1s2s3s`是等价的,这样也不会有什么 歧义. ### 字牌 可以看出,这个记牌方式对于字牌来说非常不友好,而且按照上面的想法进行了缩写之后,国 标的春夏秋冬梅兰竹菊加进来以后,字牌的总数会超过10种.那么这样的缩写就会有问题了. 简单的解决方式就是直接用汉字来输入字牌,那么这样的话,类似中中中,白白白这种经常出 现的组合又显得很不方便.所以我们也可以简单的想到一个这样的缩写:`3中=中中中`,仔细 想想就会发现这个缩写和之前的数字牌表示方式是不冲突的. ### 风格 由于图包中的麻将区分国标和日麻,我们还需要一个额外的设置,来区分cn和jp,简单起见,我 们就直接在整个字符串的开头放上一个`cn|`或者`jp|`来区分就可以了.">
+<meta name=author content>
+<link rel=canonical href=https://black-desk.github.io/post/mahjim/>
+<link crossorigin=anonymous href=/assets/css/stylesheet.8b523f1730c922e314350296d83fd666efa16519ca136320a93df674d00b6325.css integrity="sha256-i1I/FzDJIuMUNQKW2D/WZu+hZRnKE2MgqT32dNALYyU=" rel="preload stylesheet" as=style>
+<script defer crossorigin=anonymous src=/assets/js/highlight.f413e19d0714851f6474e7ee9632408e58ac146fbdbe62747134bea2fa3415e0.js integrity="sha256-9BPhnQcUhR9kdOfuljJAjlisFG+9vmJ0cTS+ovo0FeA=" onload=hljs.initHighlightingOnLoad()></script>
+<link rel=icon href=https://black-desk.github.io/favicon.ico>
+<link rel=icon type=image/png sizes=16x16 href=https://black-desk.github.io/favicon-16x16.png>
+<link rel=icon type=image/png sizes=32x32 href=https://black-desk.github.io/favicon-32x32.png>
+<link rel=apple-touch-icon href=https://black-desk.github.io/apple-touch-icon.png>
+<link rel=mask-icon href=https://black-desk.github.io/safari-pinned-tab.svg>
+<meta name=theme-color content="#2e2e33">
+<meta name=msapplication-TileColor content="#2e2e33">
+<noscript>
+<style>#theme-toggle,.top-link{display:none}</style>
+<style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--hljs-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51)}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style>
+</noscript><link rel=stylesheet media=all href=https://cdnjs.cloudflare.com/ajax/libs/Han/3.3.0/han.min.css>
+<style>.uri:only-child{display:inline-block;width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}input[type=checkbox]{margin-right:.2em;margin-left:-1.7em;width:1.5em}</style>
+<script src=https://code.jquery.com/jquery-3.6.0.slim.min.js></script>
+<script>$(document).ready(()=>{$(".uri:only-child").each(function(){(this.nextSibling&&this.nextSibling.nodeValue&&this.nextSibling.nodeValue.trim()||this.previousSibling&&this.previousSibling.nodeValue&&this.previousSibling.nodeValue.trim())&&$(this).css("display","inline").css("white-space","break-spaces")})})</script>
+<meta property="og:title" content="麻将图片生成器">
+<meta property="og:description" content="这两天由于拿到了一个麻将图包,运用了一些编译原理课上学的知识,动手实现了一个简单的 麻将图片生成器. 项目地址在[这里](https://github.com/black-desk/mahjim),同时也在自己的服务器上部 署了一个[demo](https://mj.black-desk.cn). 这里简单聊聊这个小工具. ## 名字 Mahjong,是麻将这个游戏的一种英文表示方法,由于雀魂叫majsoul,这里就只用到j为止,加 上图片image的im,就成了mahjim, 这个命名可以说是很没有新意了. ## 思路 ### 基础 首先要解决的就是如何用字符串表示麻将的问题.天凤有比较完整的[记牌方 式][==link1==]:  \- m=萬子, p=筒子, s=索子, z=字牌, 0=赤 - 一般形=４面子１雀頭 / 標準形=一般形  ＋七対形＋国士形 - ツモはその時点で使用していない牌をランダムに選択します -  有効牌をクリックすると打牌後にその牌をツモ牌として表示します - (n\*3+2)枚で開  始：(n\*3+2)枚目をツモ牌として表示 - (n\*3+1)枚で開始：ツモはページのロード時  に毎回変化 - 和了役の判定はありません - 暗槓はできません 但是这套规则只是天风用来计算牌效的小程序使用的,并不能用来表示由于吃碰杠出现的牌 横置情况. 而且需要注意的是,天凤使用的这一套标记法,面对字牌并不那么方便,1\~7z分别代表的是东 南西北白发中,由于日麻和国内的三元牌顺序并不同,所以需要一定的适应. 以这个为基础,我们可以考虑在牌前面加上前缀来表示牌的情况,实际上对于输出图片这个需 求而言,任何一张麻将一共就4种状态,正常竖置,横置,横置加杠,翻面.其中翻面我们可以考 虑直接输出一张背面的图片,所以可以看作是一种特殊的牌.如果采用`_`来表示牌的横 置,`^`表示牌加杠,那么就形成了我采取的这种方法来表示一张正常的牌: pre+num+class 其中`pre`表示一个前缀,可以是`_`或者`^`,也可以没有,用来表示牌的摆放方式.`num`表示 牌的点数,`class`用来表示牌的种类,可以是`p`,`s`,`m`,`z`. 但是每个牌都这么写就太烦了,我们需要一些简写的方式. 很容易想到的就是class可以合并,比如`123s`应该和`1s2s3s`是等价的,这样也不会有什么 歧义. ### 字牌 可以看出,这个记牌方式对于字牌来说非常不友好,而且按照上面的想法进行了缩写之后,国 标的春夏秋冬梅兰竹菊加进来以后,字牌的总数会超过10种.那么这样的缩写就会有问题了. 简单的解决方式就是直接用汉字来输入字牌,那么这样的话,类似中中中,白白白这种经常出 现的组合又显得很不方便.所以我们也可以简单的想到一个这样的缩写:`3中=中中中`,仔细 想想就会发现这个缩写和之前的数字牌表示方式是不冲突的. ### 风格 由于图包中的麻将区分国标和日麻,我们还需要一个额外的设置,来区分cn和jp,简单起见,我 们就直接在整个字符串的开头放上一个`cn|`或者`jp|`来区分就可以了.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://black-desk.github.io/post/mahjim/"><meta property="article:section" content="post">
+<meta property="article:published_time" content="2022-07-10T02:23:58+08:00">
+<meta property="article:modified_time" content="2022-07-10T02:23:58+08:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="麻将图片生成器">
+<meta name=twitter:description content="这两天由于拿到了一个麻将图包,运用了一些编译原理课上学的知识,动手实现了一个简单的 麻将图片生成器. 项目地址在[这里](https://github.com/black-desk/mahjim),同时也在自己的服务器上部 署了一个[demo](https://mj.black-desk.cn). 这里简单聊聊这个小工具. ## 名字 Mahjong,是麻将这个游戏的一种英文表示方法,由于雀魂叫majsoul,这里就只用到j为止,加 上图片image的im,就成了mahjim, 这个命名可以说是很没有新意了. ## 思路 ### 基础 首先要解决的就是如何用字符串表示麻将的问题.天凤有比较完整的[记牌方 式][==link1==]:  \- m=萬子, p=筒子, s=索子, z=字牌, 0=赤 - 一般形=４面子１雀頭 / 標準形=一般形  ＋七対形＋国士形 - ツモはその時点で使用していない牌をランダムに選択します -  有効牌をクリックすると打牌後にその牌をツモ牌として表示します - (n\*3+2)枚で開  始：(n\*3+2)枚目をツモ牌として表示 - (n\*3+1)枚で開始：ツモはページのロード時  に毎回変化 - 和了役の判定はありません - 暗槓はできません 但是这套规则只是天风用来计算牌效的小程序使用的,并不能用来表示由于吃碰杠出现的牌 横置情况. 而且需要注意的是,天凤使用的这一套标记法,面对字牌并不那么方便,1\~7z分别代表的是东 南西北白发中,由于日麻和国内的三元牌顺序并不同,所以需要一定的适应. 以这个为基础,我们可以考虑在牌前面加上前缀来表示牌的情况,实际上对于输出图片这个需 求而言,任何一张麻将一共就4种状态,正常竖置,横置,横置加杠,翻面.其中翻面我们可以考 虑直接输出一张背面的图片,所以可以看作是一种特殊的牌.如果采用`_`来表示牌的横 置,`^`表示牌加杠,那么就形成了我采取的这种方法来表示一张正常的牌: pre+num+class 其中`pre`表示一个前缀,可以是`_`或者`^`,也可以没有,用来表示牌的摆放方式.`num`表示 牌的点数,`class`用来表示牌的种类,可以是`p`,`s`,`m`,`z`. 但是每个牌都这么写就太烦了,我们需要一些简写的方式. 很容易想到的就是class可以合并,比如`123s`应该和`1s2s3s`是等价的,这样也不会有什么 歧义. ### 字牌 可以看出,这个记牌方式对于字牌来说非常不友好,而且按照上面的想法进行了缩写之后,国 标的春夏秋冬梅兰竹菊加进来以后,字牌的总数会超过10种.那么这样的缩写就会有问题了. 简单的解决方式就是直接用汉字来输入字牌,那么这样的话,类似中中中,白白白这种经常出 现的组合又显得很不方便.所以我们也可以简单的想到一个这样的缩写:`3中=中中中`,仔细 想想就会发现这个缩写和之前的数字牌表示方式是不冲突的. ### 风格 由于图包中的麻将区分国标和日麻,我们还需要一个额外的设置,来区分cn和jp,简单起见,我 们就直接在整个字符串的开头放上一个`cn|`或者`jp|`来区分就可以了.">
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":2,"name":"Posts","item":"https://black-desk.github.io/post/"},{"@type":"ListItem","position":3,"name":"麻将图片生成器","item":"https://black-desk.github.io/post/mahjim/"}]}</script>
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"麻将图片生成器","name":"麻将图片生成器","description":"这两天由于拿到了一个麻将图包,运用了一些编译原理课上学的知识,动手实现了一个简单的 麻将图片生成器. 项目地址在[这里](https://github.com/black-desk/mahjim),同时也在自己的服务器上部 署了一个[demo](https://mj.black-desk.cn). 这里简单聊聊这个小工具. ## 名字 Mahjong,是麻将这个游戏的一种英文表示方法,由于雀魂叫majsoul,这里就只用到j为止,加 上图片image的im,就成了mahjim, 这个命名可以说是很没有新意了. ## 思路 ### 基础 首先要解决的就是如何用字符串表示麻将的问题.天凤有比较完整的[记牌方 式][==link1==]:  \\- m=萬子, p=筒子, s=索子, z=字牌, 0=赤 - 一般形=４面子１雀頭 / 標準形=一般形  ＋七対形＋国士形 - ツモはその時点で使用していない牌をランダムに選択します -  有効牌をクリックすると打牌後にその牌をツモ牌として表示します - (n\\*3+2)枚で開  始：(n\\*3+2)枚目をツモ牌として表示 - (n\\*3+1)枚で開始：ツモはページのロード時  に毎回変化 - 和了役の判定はありません - 暗槓はできません 但是这套规则只是天风用来计算牌效的小程序使用的,并不能用来表示由于吃碰杠出现的牌 横置情况. 而且需要注意的是,天凤使用的这一套标记法,面对字牌并不那么方便,1\\~7z分别代表的是东 南西北白发中,由于日麻和国内的三元牌顺序并不同,所以需要一定的适应. 以这个为基础,我们可以考虑在牌前面加上前缀来表示牌的情况,实际上对于输出图片这个需 求而言,任何一张麻将一共就4种状态,正常竖置,横置,横置加杠,翻面.其中翻面我们可以考 虑直接输出一张背面的图片,所以可以看作是一种特殊的牌.如果采用`_`来表示牌的横 置,`^`表示牌加杠,那么就形成了我采取的这种方法来表示一张正常的牌: pre+num+class 其中`pre`表示一个前缀,可以是`_`或者`^`,也可以没有,用来表示牌的摆放方式.`num`表示 牌的点数,`class`用来表示牌的种类,可以是`p`,`s`,`m`,`z`. 但是每个牌都这么写就太烦了,我们需要一些简写的方式. 很容易想到的就是class可以合并,比如`123s`应该和`1s2s3s`是等价的,这样也不会有什么 歧义. ### 字牌 可以看出,这个记牌方式对于字牌来说非常不友好,而且按照上面的想法进行了缩写之后,国 标的春夏秋冬梅兰竹菊加进来以后,字牌的总数会超过10种.那么这样的缩写就会有问题了. 简单的解决方式就是直接用汉字来输入字牌,那么这样的话,类似中中中,白白白这种经常出 现的组合又显得很不方便.所以我们也可以简单的想到一个这样的缩写:`3中=中中中`,仔细 想想就会发现这个缩写和之前的数字牌表示方式是不冲突的. ### 风格 由于图包中的麻将区分国标和日麻,我们还需要一个额外的设置,来区分cn和jp,简单起见,我 们就直接在整个字符串的开头放上一个`cn|`或者`jp|`来区分就可以了.","keywords":[],"articleBody":"这两天由于拿到了一个麻将图包,运用了一些编译原理课上学的知识,动手实现了一个简单的 麻将图片生成器. 项目地址在[这里](https://github.com/black-desk/mahjim),同时也在自己的服务器上部 署了一个[demo](https://mj.black-desk.cn). 这里简单聊聊这个小工具. ## 名字 Mahjong,是麻将这个游戏的一种英文表示方法,由于雀魂叫majsoul,这里就只用到j为止,加 上图片image的im,就成了mahjim, 这个命名可以说是很没有新意了. ## 思路 ### 基础 首先要解决的就是如何用字符串表示麻将的问题.天凤有比较完整的[记牌方 式][==link1==]:  \\- m=萬子, p=筒子, s=索子, z=字牌, 0=赤 - 一般形=４面子１雀頭 / 標準形=一般形  ＋七対形＋国士形 - ツモはその時点で使用していない牌をランダムに選択します -  有効牌をクリックすると打牌後にその牌をツモ牌として表示します - (n\\*3+2)枚で開  始：(n\\*3+2)枚目をツモ牌として表示 - (n\\*3+1)枚で開始：ツモはページのロード時  に毎回変化 - 和了役の判定はありません - 暗槓はできません 但是这套规则只是天风用来计算牌效的小程序使用的,并不能用来表示由于吃碰杠出现的牌 横置情况. 而且需要注意的是,天凤使用的这一套标记法,面对字牌并不那么方便,1\\~7z分别代表的是东 南西北白发中,由于日麻和国内的三元牌顺序并不同,所以需要一定的适应. 以这个为基础,我们可以考虑在牌前面加上前缀来表示牌的情况,实际上对于输出图片这个需 求而言,任何一张麻将一共就4种状态,正常竖置,横置,横置加杠,翻面.其中翻面我们可以考 虑直接输出一张背面的图片,所以可以看作是一种特殊的牌.如果采用`_`来表示牌的横 置,`^`表示牌加杠,那么就形成了我采取的这种方法来表示一张正常的牌: pre+num+class 其中`pre`表示一个前缀,可以是`_`或者`^`,也可以没有,用来表示牌的摆放方式.`num`表示 牌的点数,`class`用来表示牌的种类,可以是`p`,`s`,`m`,`z`. 但是每个牌都这么写就太烦了,我们需要一些简写的方式. 很容易想到的就是class可以合并,比如`123s`应该和`1s2s3s`是等价的,这样也不会有什么 歧义. ### 字牌 可以看出,这个记牌方式对于字牌来说非常不友好,而且按照上面的想法进行了缩写之后,国 标的春夏秋冬梅兰竹菊加进来以后,字牌的总数会超过10种.那么这样的缩写就会有问题了. 简单的解决方式就是直接用汉字来输入字牌,那么这样的话,类似中中中,白白白这种经常出 现的组合又显得很不方便.所以我们也可以简单的想到一个这样的缩写:`3中=中中中`,仔细 想想就会发现这个缩写和之前的数字牌表示方式是不冲突的. ### 风格 由于图包中的麻将区分国标和日麻,我们还需要一个额外的设置,来区分cn和jp,简单起见,我 们就直接在整个字符串的开头放上一个`cn|`或者`jp|`来区分就可以了. ## 文法 我们做了这样的设计之后,基本整理一下就可以得出文法了: input - style + \"|\" + majs | majs // 旧 input - majs style - \"cn\" | \"jp\" 国标/日麻 // 旧 majs - group + majs | empty 描述麻将牌的字符串 group - ps + class | p + Z 按照牌的种类将牌分组, 比如 \"123s456w3中\" 有3个group, \"123s\" \"456w\" \"3中\" F - \"东\" | \"南\" | \"西\" | \"北\" | \"白\" | \"发\" | \"中\" | \"+\" | ... | empty 所有字牌, 其中 + 代表牌背 ps - p + ps | empty 牌的列表 p - pre + num pre - \"_\" | \"^\" | empty num - \"0\" | \"1\" | \"2\" | \"3\" | \"4\" | \"5\" | \"6\" | \"7\" | \"8\" | \"9\" | empty class - \"p\" | \"s\" | \"w\" | \"z\" ## 实现 基本上得出了这样一个文法以后就可以直接去实现它了,我这里由于之前抄龙书附录A写过一 个像是编译器前端的[东西](https://github.com/black-desk/Compiler-front-end),所以 这里用了类似的结构来实现. 实操的时候发现一些设计对于如此简单的字符串解析其实没有必要.我虽然做了一些调整,但 是并没有把冗余的结构删干净,如果真有人阅读我的源码的话,见笑了. 实现之前我对这个项目有一些未来的的设想,即有空了再做的东西,比方说希望能用繁体中文 输入字牌啊,之类的.所以实现上采取了一种听起来很蠢的方法.根据上面这个文法.我们实 际上只要把简写全部展开,就可以让这个字符串描述一张一张的图片了.比方说`cn|_123s` 实际上可以看成,`cn_1s`,`cn2s`,`cn3s`这三张图片拼合的结果.所以我实际上只要把所有 的简写都展开就可以得到,只指向某一张特定的图的字符串了. 得到了这个串以后,我们保持图片文件名和它一致.就基本可以解决问题了.比如说我横着的 国标一条的文件名就叫`cn_1s.png`,那么实际上对于写程序来说会方便的多. ## 图片拼接 在实现过程中,本着能不自己造轮子就不自己造轮子的态度.我选择在拼接图片这一步上使用 第三方库. 我首先找到了这么一个[库](https://github.com/ozankasikci/go-image-merge),看起来很 美好,但是作者写这个的时候,是机械的把图片往格子里面放,相当于一个表格,行的大小和 列的大小都是固定的.由于横置的麻将牌和竖置的宽度不同,所以会引起一些问题.是不可用 的.我简单看了看源码,并没有发现能满足我需求的设置.所以就放弃了它. 然后我又找到了[这个](https://github.com/noelyahan/mergi),看起来功能强多了,甚至还 可以生成动画,结果遇到了另一个问题. 如果用这个东西拼合高度不同的图片,那么它会统一向上对齐,而这是不可调的. 这也许在摆 牌河的时候很有用,但是一般来说表示吃碰的时候都是向下的. 而且这个软件的运作方式也很迷惑,有兴趣的可以去看一下他的使用[示 例](https://github.com/noelyahan/mergi/blob/master/examples/merge/main.go#L69). 总之最终我没有找到合适的工具,只能自己实现了,这一步耽误了很多时间. 以后看来这种简 单的需求还是自己造轮子比较好( ## 透明 发现了一个新知识点:jpg是不支持透明图片的,想要就得用png. ## 效果 `56s|789s|3中|05m2|_123s2|4s` ![56s|789s|3 中|05m2|\\_123s2|4s](https://mj.black-desk.cn/56s|789s|3中|05m2|_123s2|4s) 一气通贯役牌中赤宝牌\\! ## 特殊处理 由于我们的语法并不是一个完全LL1的文法,比如说我们面对这样的两个输入: `123s` `3白` 我们会发现我们读数字的时候并不知道这个数字到底是字牌的出现次数还是在描述点数 所以我这里有个特殊的处理: 如果我们只处理`123s`这种情况的话,读`123`的时候可以建立三张牌,它们的`class`暂时是 空的. 当s读入的时候,我们向之前读入的`123`三张牌添加class. 如果模仿这个过程的话:读取数字,建立牌,然后我们读入一个`f`,把之前读入的`num`当作次 数,从之前的牌中读出信息. 然后将牌的点数置成`1`,然后`class`置成读入的`f`,然后将这张牌复制`num`次. 这种设计,意味着我们读入`白`这样的字符串的时候仍然需要先读入`pre + num`,那么我们 读一个`num`但是`lookat`并不是`num`的时候需要读出一个`1`. 这意味着如果我们只输入一个`s`会得到1s. 也带来了另一个问题:如果输入`_^2s`这样的字符串,会得到`_1s`和`^2s`,这太不符合直觉 了. 所以要禁止一次输入两个`pre`. 这样的实现说实话是有点乱的.看来还是得支持括号. [==link1==]: https://tenhou.net/2/ ","wordCount":"257","inLanguage":"zh-cn","datePublished":"2022-07-10T02:23:58+08:00","dateModified":"2022-07-10T02:23:58+08:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://black-desk.github.io/post/mahjim/"},"publisher":{"@type":"Organization","name":"RAMBLE\u0026BB","logo":{"@type":"ImageObject","url":"https://black-desk.github.io/favicon.ico"}}}</script>
+</head>
+<body id=top>
+<script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add('dark'):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove('dark'):window.matchMedia('(prefers-color-scheme: dark)').matches&&document.body.classList.add('dark')</script>
+<header class=header>
+<nav class=nav>
+<div class=logo>
+<a href=https://black-desk.github.io accesskey=h title="RAMBLE&BB (Alt + H)">RAMBLE&BB</a>
+<div class=logo-switches>
+<button id=theme-toggle accesskey=t title="(Alt + T)"><svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+</button>
+</div>
+</div>
+<ul id=menu>
+</ul>
+</nav>
+</header>
+<main class=main>
+<article class=post-single>
+<header class=post-header>
+<h1 class=post-title>
+麻将图片生成器
+</h1>
+<div class=post-meta><span title="2022-07-10 02:23:58 +0800 +0800">July 10, 2022</span>
+</div>
+</header>
+<div class=post-content>这两天由于拿到了一个麻将图包,运用了一些编译原理课上学的知识,动手实现了一个简单的
+麻将图片生成器.
+项目地址在[这里](https://github.com/black-desk/mahjim),同时也在自己的服务器上部
+署了一个[demo](https://mj.black-desk.cn).
+这里简单聊聊这个小工具.
+## 名字
+Mahjong,是麻将这个游戏的一种英文表示方法,由于雀魂叫majsoul,这里就只用到j为止,加
+上图片image的im,就成了mahjim, 这个命名可以说是很没有新意了.
+## 思路
+### 基础
+首先要解决的就是如何用字符串表示麻将的问题.天凤有比较完整的[记牌方
+式][==link1==]:
+> \- m=萬子, p=筒子, s=索子, z=字牌, 0=赤 - 一般形=４面子１雀頭 / 標準形=一般形
+> ＋七対形＋国士形 - ツモはその時点で使用していない牌をランダムに選択します -
+> 有効牌をクリックすると打牌後にその牌をツモ牌として表示します - (n\*3+2)枚で開
+> 始：(n\*3+2)枚目をツモ牌として表示 - (n\*3+1)枚で開始：ツモはページのロード時
+> に毎回変化 - 和了役の判定はありません - 暗槓はできません
+但是这套规则只是天风用来计算牌效的小程序使用的,并不能用来表示由于吃碰杠出现的牌
+横置情况.
+而且需要注意的是,天凤使用的这一套标记法,面对字牌并不那么方便,1\~7z分别代表的是东
+南西北白发中,由于日麻和国内的三元牌顺序并不同,所以需要一定的适应.
+以这个为基础,我们可以考虑在牌前面加上前缀来表示牌的情况,实际上对于输出图片这个需
+求而言,任何一张麻将一共就4种状态,正常竖置,横置,横置加杠,翻面.其中翻面我们可以考
+虑直接输出一张背面的图片,所以可以看作是一种特殊的牌.如果采用`_`来表示牌的横
+置,`^`表示牌加杠,那么就形成了我采取的这种方法来表示一张正常的牌:
+pre+num+class
+其中`pre`表示一个前缀,可以是`_`或者`^`,也可以没有,用来表示牌的摆放方式.`num`表示
+牌的点数,`class`用来表示牌的种类,可以是`p`,`s`,`m`,`z`.
+但是每个牌都这么写就太烦了,我们需要一些简写的方式.
+很容易想到的就是class可以合并,比如`123s`应该和`1s2s3s`是等价的,这样也不会有什么
+歧义.
+### 字牌
+可以看出,这个记牌方式对于字牌来说非常不友好,而且按照上面的想法进行了缩写之后,国
+标的春夏秋冬梅兰竹菊加进来以后,字牌的总数会超过10种.那么这样的缩写就会有问题了.
+简单的解决方式就是直接用汉字来输入字牌,那么这样的话,类似中中中,白白白这种经常出
+现的组合又显得很不方便.所以我们也可以简单的想到一个这样的缩写:`3中=中中中`,仔细
+想想就会发现这个缩写和之前的数字牌表示方式是不冲突的.
+### 风格
+由于图包中的麻将区分国标和日麻,我们还需要一个额外的设置,来区分cn和jp,简单起见,我
+们就直接在整个字符串的开头放上一个`cn|`或者`jp|`来区分就可以了.
+## 文法
+我们做了这样的设计之后,基本整理一下就可以得出文法了:
+input -> style + "|" + majs | majs // 旧
+input -> majs
+style -> "cn" | "jp" 国标/日麻 // 旧
+majs -> group + majs | empty 描述麻将牌的字符串
+group -> ps + class | p + Z 按照牌的种类将牌分组, 比如 "123s456w3中" 有3个group, "123s" "456w" "3中"
+F -> "东" | "南" | "西" | "北" | "白" | "发" | "中" | "+" | ... | empty 所有字牌, 其中 + 代表牌背
+ps -> p + ps | empty 牌的列表
+p -> pre + num
+pre -> "_" | "^" | empty
+num -> "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | empty
+class -> "p" | "s" | "w" | "z"
+## 实现
+基本上得出了这样一个文法以后就可以直接去实现它了,我这里由于之前抄龙书附录A写过一
+个像是编译器前端的[东西](https://github.com/black-desk/Compiler-front-end),所以
+这里用了类似的结构来实现.
+实操的时候发现一些设计对于如此简单的字符串解析其实没有必要.我虽然做了一些调整,但
+是并没有把冗余的结构删干净,如果真有人阅读我的源码的话,见笑了.
+实现之前我对这个项目有一些未来的的设想,即有空了再做的东西,比方说希望能用繁体中文
+输入字牌啊,之类的.所以实现上采取了一种听起来很蠢的方法.根据上面这个文法.我们实
+际上只要把简写全部展开,就可以让这个字符串描述一张一张的图片了.比方说`cn|_123s`
+实际上可以看成,`cn_1s`,`cn2s`,`cn3s`这三张图片拼合的结果.所以我实际上只要把所有
+的简写都展开就可以得到,只指向某一张特定的图的字符串了.
+得到了这个串以后,我们保持图片文件名和它一致.就基本可以解决问题了.比如说我横着的
+国标一条的文件名就叫`cn_1s.png`,那么实际上对于写程序来说会方便的多.
+## 图片拼接
+在实现过程中,本着能不自己造轮子就不自己造轮子的态度.我选择在拼接图片这一步上使用
+第三方库.
+我首先找到了这么一个[库](https://github.com/ozankasikci/go-image-merge),看起来很
+美好,但是作者写这个的时候,是机械的把图片往格子里面放,相当于一个表格,行的大小和
+列的大小都是固定的.由于横置的麻将牌和竖置的宽度不同,所以会引起一些问题.是不可用
+的.我简单看了看源码,并没有发现能满足我需求的设置.所以就放弃了它.
+然后我又找到了[这个](https://github.com/noelyahan/mergi),看起来功能强多了,甚至还
+可以生成动画,结果遇到了另一个问题.
+如果用这个东西拼合高度不同的图片,那么它会统一向上对齐,而这是不可调的. 这也许在摆
+牌河的时候很有用,但是一般来说表示吃碰的时候都是向下的.
+而且这个软件的运作方式也很迷惑,有兴趣的可以去看一下他的使用[示
+例](https://github.com/noelyahan/mergi/blob/master/examples/merge/main.go#L69).
+总之最终我没有找到合适的工具,只能自己实现了,这一步耽误了很多时间. 以后看来这种简
+单的需求还是自己造轮子比较好(
+## 透明
+发现了一个新知识点:jpg是不支持透明图片的,想要就得用png.
+## 效果
+`56s|789s|3中|05m2|_123s2|4s`
+![56s|789s|3
+中|05m2|\_123s2|4s](https://mj.black-desk.cn/56s|789s|3中|05m2|_123s2|4s)
+一气通贯役牌中赤宝牌\!
+## 特殊处理
+由于我们的语法并不是一个完全LL1的文法,比如说我们面对这样的两个输入:
+`123s` `3白`
+我们会发现我们读数字的时候并不知道这个数字到底是字牌的出现次数还是在描述点数
+所以我这里有个特殊的处理:
+如果我们只处理`123s`这种情况的话,读`123`的时候可以建立三张牌,它们的`class`暂时是
+空的.
+当s读入的时候,我们向之前读入的`123`三张牌添加class.
+如果模仿这个过程的话:读取数字,建立牌,然后我们读入一个`f`,把之前读入的`num`当作次
+数,从之前的牌中读出信息.
+然后将牌的点数置成`1`,然后`class`置成读入的`f`,然后将这张牌复制`num`次.
+这种设计,意味着我们读入`白`这样的字符串的时候仍然需要先读入`pre + num`,那么我们
+读一个`num`但是`lookat`并不是`num`的时候需要读出一个`1`.
+这意味着如果我们只输入一个`s`会得到1s.
+也带来了另一个问题:如果输入`_^2s`这样的字符串,会得到`_1s`和`^2s`,这太不符合直觉
+了.
+所以要禁止一次输入两个`pre`.
+这样的实现说实话是有点乱的.看来还是得支持括号.
+[==link1==]: https://tenhou.net/2/
+</div>
+<footer class=post-footer>
+<ul class=post-tags>
+</ul>
+</footer>
+</article>
+</main>
+<footer class=footer>
+<span>&copy; 2022 <a href=https://black-desk.github.io>RAMBLE&BB</a></span>
+<span>
+Powered by
+<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
+        <a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a>
+</span>
+</footer>
+<a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentcolor"><path d="M12 6H0l6-6z"/></svg>
+</a><script src=https://cdnjs.cloudflare.com/ajax/libs/Han/3.3.0/han.min.js></script>
+<script>let menu=document.getElementById('menu');menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener("click",function(b){b.preventDefault();var a=this.getAttribute("href").substr(1);window.matchMedia('(prefers-reduced-motion: reduce)').matches?document.querySelector(`[id='${decodeURIComponent(a)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(a)}']`).scrollIntoView({behavior:"smooth"}),a==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${a}`)})})</script>
+<script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script>
+<script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove('dark'),localStorage.setItem("pref-theme",'light')):(document.body.classList.add('dark'),localStorage.setItem("pref-theme",'dark'))})</script>
+</body>
+</html>

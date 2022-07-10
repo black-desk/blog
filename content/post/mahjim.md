@@ -7,7 +7,7 @@ draft: false
 麻将图片生成器.
 
 项目地址在[这里](https://github.com/black-desk/mahjim),同时也在自己的服务器上部
-署了一个[demo](https://mj.black-desk.cn).
+署了一个[demo](https://mahjim.black-desk.cn).
 
 这里简单聊聊这个小工具.
 
@@ -129,7 +129,7 @@ Mahjong,是麻将这个游戏的一种英文表示方法,由于雀魂叫majsoul,
 `56s|789s|3中|05m2|_123s2|4s`
 
 ![56s|789s|3
-中|05m2|\_123s2|4s](https://mj.black-desk.cn/56s|789s|3中|05m2|_123s2|4s)
+中|05m2|\_123s2|4s](https://mahjim.black-desk.cn/56s|789s|3中|05m2|_123s2|4s)
 
 一气通贯役牌中赤宝牌\!
 

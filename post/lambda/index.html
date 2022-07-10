@@ -17,23 +17,23 @@
 auto funtionTimesMod1(int mod) {  int variableA = mod;  auto f = [variableA](int a, int b) { return a % variableA * b % variableA; };  return f; } void test1() {  cout << &#34;---test1---&#34; << endl;  int a = 10, b = 20, c = 7;  auto times = funtionTimesMod1(c);  cout << times(a, b) << endl; } 这里funtionTimesMod1(int mod)返回一个签名为int(int, int)的函数,这个函数计算两个参数相乘对mod取模的结果.">
 <meta name=author content>
 <link rel=canonical href=https://blog.black-desk.cn/post/lambda/>
-<link crossorigin=anonymous href=/assets/css/stylesheet.8b523f1730c922e314350296d83fd666efa16519ca136320a93df674d00b6325.css integrity="sha256-i1I/FzDJIuMUNQKW2D/WZu+hZRnKE2MgqT32dNALYyU=" rel="preload stylesheet" as=style>
-<script defer crossorigin=anonymous src=/assets/js/highlight.f413e19d0714851f6474e7ee9632408e58ac146fbdbe62747134bea2fa3415e0.js integrity="sha256-9BPhnQcUhR9kdOfuljJAjlisFG+9vmJ0cTS+ovo0FeA=" onload=hljs.initHighlightingOnLoad()></script>
+<link crossorigin=anonymous href=/assets/css/stylesheet.min.1953d0aedd677e6a027d5ea145d2e71a2b2101649fba37784de1035cf38994a3.css integrity="sha256-GVPQrt1nfmoCfV6hRdLnGishAWSfujd4TeEDXPOJlKM=" rel="preload stylesheet" as=style>
 <link rel=icon href=https://blog.black-desk.cn/favicon.ico>
-<link rel=icon type=image/png sizes=16x16 href=https://blog.black-desk.cn/favicon-16x16.png>
-<link rel=icon type=image/png sizes=32x32 href=https://blog.black-desk.cn/favicon-32x32.png>
 <link rel=apple-touch-icon href=https://blog.black-desk.cn/apple-touch-icon.png>
-<link rel=mask-icon href=https://blog.black-desk.cn/safari-pinned-tab.svg>
-<meta name=theme-color content="#2e2e33">
-<meta name=msapplication-TileColor content="#2e2e33">
-<noscript>
-<style>#theme-toggle,.top-link{display:none}</style>
-<style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--hljs-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51)}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style>
-</noscript><link rel=stylesheet media=all href=https://cdnjs.cloudflare.com/ajax/libs/Han/3.3.0/han.min.css>
-<style>.uri:only-child{display:inline-block;width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}input[type=checkbox]{margin-right:.2em;margin-left:-1.7em;width:1.5em}</style>
-<script src=https://code.jquery.com/jquery-3.6.0.slim.min.js></script>
-<script>$(document).ready(()=>{$(".uri:only-child").each(function(){(this.nextSibling&&this.nextSibling.nodeValue&&this.nextSibling.nodeValue.trim()||this.previousSibling&&this.previousSibling.nodeValue&&this.previousSibling.nodeValue.trim())&&$(this).css("display","inline").css("white-space","break-spaces")})})</script>
-<meta property="og:title" content="lambda">
+<meta name=twitter:title content="lambda | RAMBLE&BB">
+<meta name=twitter:description content="这里整理一些关于c++中的匿名函数的知识.
+《C++ primer》上有的内容就不在重述了.这里重点讲一些primer上可能没有的东西.
+捕获的时机 primer 向我们介绍到: 有两种捕获变量的方式, 值捕获和引用捕获. 其中:
+ ...
+与参数不同,被捕获的变量的值是在lambda创建时拷贝,而不是调用时拷贝
+...
+如果我们采用引用方式捕获一个变量,就必须确保被引用的对象在lambda执行的时候是存在的.lambda捕获的都是局部变量,这些变量在函数结束后就不复存在了.
+...
+ 我们看一段代码:
+auto funtionTimesMod1(int mod) {  int variableA = mod;  auto f = [variableA](int a, int b) { return a % variableA * b % variableA; };  return f; } void test1() {  cout << &#34;---test1---&#34; << endl;  int a = 10, b = 20, c = 7;  auto times = funtionTimesMod1(c);  cout << times(a, b) << endl; } 这里funtionTimesMod1(int mod)返回一个签名为int(int, int)的函数,这个函数计算两个参数相乘对mod取模的结果.">
+<meta name=twitter:site content="@novoreorx">
+<meta name=twitter:creator content="@novoreorx">
+<meta property="og:title" content="lambda | RAMBLE&BB">
 <meta property="og:description" content="这里整理一些关于c++中的匿名函数的知识.
 《C++ primer》上有的内容就不在重述了.这里重点讲一些primer上可能没有的东西.
 捕获的时机 primer 向我们介绍到: 有两种捕获变量的方式, 值捕获和引用捕获. 其中:
@@ -45,52 +45,69 @@ auto funtionTimesMod1(int mod) {  int variableA = mod;  auto f = [variableA](int
  我们看一段代码:
 auto funtionTimesMod1(int mod) {  int variableA = mod;  auto f = [variableA](int a, int b) { return a % variableA * b % variableA; };  return f; } void test1() {  cout << &#34;---test1---&#34; << endl;  int a = 10, b = 20, c = 7;  auto times = funtionTimesMod1(c);  cout << times(a, b) << endl; } 这里funtionTimesMod1(int mod)返回一个签名为int(int, int)的函数,这个函数计算两个参数相乘对mod取模的结果.">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://blog.black-desk.cn/post/lambda/"><meta property="article:section" content="post">
+<meta property="og:url" content="https://blog.black-desk.cn/post/lambda/">
+<meta property="article:section" content="post">
 <meta property="article:published_time" content="2022-07-10T02:23:58+08:00">
 <meta property="article:modified_time" content="2022-07-10T02:23:58+08:00">
-<meta name=twitter:card content="summary">
-<meta name=twitter:title content="lambda">
-<meta name=twitter:description content="这里整理一些关于c++中的匿名函数的知识.
-《C++ primer》上有的内容就不在重述了.这里重点讲一些primer上可能没有的东西.
-捕获的时机 primer 向我们介绍到: 有两种捕获变量的方式, 值捕获和引用捕获. 其中:
- ...
-与参数不同,被捕获的变量的值是在lambda创建时拷贝,而不是调用时拷贝
-...
-如果我们采用引用方式捕获一个变量,就必须确保被引用的对象在lambda执行的时候是存在的.lambda捕获的都是局部变量,这些变量在函数结束后就不复存在了.
-...
- 我们看一段代码:
-auto funtionTimesMod1(int mod) {  int variableA = mod;  auto f = [variableA](int a, int b) { return a % variableA * b % variableA; };  return f; } void test1() {  cout << &#34;---test1---&#34; << endl;  int a = 10, b = 20, c = 7;  auto times = funtionTimesMod1(c);  cout << times(a, b) << endl; } 这里funtionTimesMod1(int mod)返回一个签名为int(int, int)的函数,这个函数计算两个参数相乘对mod取模的结果.">
 <script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":2,"name":"Posts","item":"https://blog.black-desk.cn/post/"},{"@type":"ListItem","position":3,"name":"lambda","item":"https://blog.black-desk.cn/post/lambda/"}]}</script>
-<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"lambda","name":"lambda","description":"这里整理一些关于c++中的匿名函数的知识.\n《C++ primer》上有的内容就不在重述了.这里重点讲一些primer上可能没有的东西.\n捕获的时机 primer 向我们介绍到: 有两种捕获变量的方式, 值捕获和引用捕获. 其中:\n ...\n与参数不同,被捕获的变量的值是在lambda创建时拷贝,而不是调用时拷贝\n...\n如果我们采用引用方式捕获一个变量,就必须确保被引用的对象在lambda执行的时候是存在的.lambda捕获的都是局部变量,这些变量在函数结束后就不复存在了.\n...\n 我们看一段代码:\nauto funtionTimesMod1(int mod) {  int variableA = mod;  auto f = [variableA](int a, int b) { return a % variableA * b % variableA; };  return f; } void test1() {  cout \u0026lt;\u0026lt; \u0026quot;---test1---\u0026quot; \u0026lt;\u0026lt; endl;  int a = 10, b = 20, c = 7;  auto times = funtionTimesMod1(c);  cout \u0026lt;\u0026lt; times(a, b) \u0026lt;\u0026lt; endl; } 这里funtionTimesMod1(int mod)返回一个签名为int(int, int)的函数,这个函数计算两个参数相乘对mod取模的结果.","keywords":[],"articleBody":"这里整理一些关于c++中的匿名函数的知识.\n《C++ primer》上有的内容就不在重述了.这里重点讲一些primer上可能没有的东西.\n捕获的时机 primer 向我们介绍到: 有两种捕获变量的方式, 值捕获和引用捕获. 其中:\n ...\n与参数不同,被捕获的变量的值是在lambda创建时拷贝,而不是调用时拷贝\n...\n如果我们采用引用方式捕获一个变量,就必须确保被引用的对象在lambda执行的时候是存在的.lambda捕获的都是局部变量,这些变量在函数结束后就不复存在了.\n...\n 我们看一段代码:\nauto funtionTimesMod1(int mod) {  int variableA = mod;  auto f = [variableA](int a, int b) { return a % variableA * b % variableA; };  return f; } void test1() {  cout  \"---test1---\"  endl;  int a = 10, b = 20, c = 7;  auto times = funtionTimesMod1(c);  cout  times(a, b)  endl; } 这里funtionTimesMod1(int mod)返回一个签名为int(int, int)的函数,这个函数计算两个参数相乘对mod取模的结果.\n当然可以正常运行,结果为4,如果我们将它换成引用捕获:\nauto funtionTimesMod2(int mod) {  int variableA = mod;  auto f = [\u0026variableA](int a, int b) { return a % variableA * b % variableA; };  return f; } void test2() {  cout  \"---test2---\"  endl;  int a = 10, b = 20, c = 7;  auto times = funtionTimesMod2(c);  cout  times(a, b)  endl; } 这段代码就已经不能正常工作了,它的输出是 0.\n我们来看看为啥:\nProcess 15820 stopped * thread #1, name = 'tmp', stop reason = step in frame #0: 0x000000000040096b tmp`funtionTimesMod2(mod=7) at tmp.cpp:17 14 } 15 16 auto funtionTimesMod2(int mod) { - 17 int variableA = mod; 18 auto f = [\u0026variableA](int a, int b) { return a % variableA * b % variableA; }; 19 return f; 20 } (lldb) p \u0026variableA (int *) $1 = 0x00007fffffffe120 Process 15820 stopped * thread #1, name = 'tmp', stop reason = step over frame #0: 0x00000000004009dc tmp`test2() at tmp.cpp:25 22 cout 25 cout  可以看到times这个对象中保存下来的variableA只是一个指针,它指向我们之前创建的局部变量variableA,这个地址在栈上,这意味着当我们真的调用times的时候,局部变量variableA所在的那片内存已经被使用过了.所以会返回错误的结果.接下来,我们可以看到实际上调用的时候variableA里面是20,这是因为刚好参数b被放置在了variableA之前的位置上.\nProcess 21271 stopped * thread #1, name = 'tmp', stop reason = step in frame #0: 0x0000000000400a32 tmp`funtionTimesMod2(this=0x00007fffffffe158, a=10, b=20)::$_1::operator()(int, int) const at tmp.cpp:18 15 16 auto funtionTimesMod2(int mod) { 17 int variableA = mod; - 18 auto f = [\u0026variableA](int a, int b) { return a % variableA * b % variableA; }; 19 return f; 20 } 21 void test2() { (lldb) p variableA (int) $3 = 20 (lldb) p \u0026b (int *) $4 = 0x00007fffffffe120 lambda 的实现 根据《C++ Primer》在10.3以及14.8.1的介绍,我们知道一个lambda表达式是由编译器负责翻译成一个没有类名,重载过调用运算符的对象的.\n这解释了为什么我们只能用auto来定义一个lambda类型的变量,因为这个类是没有名字的, 或者说它的名字是编译器自己生成的,我们并不能知道它叫什么.\n这听起来很美好,我们也确实可以写出代码,用一个自己创建的,重载过调用运算符的对象,来模拟一个lambda:\nclass INT { public:  int num;  INT(const INT \u0026i) : num(i.num) { cout  \"Copy constructor\"  endl; }  INT() = default; };  auto funtionTimesMod3(int mod) {  INT variableA;  cout  \"----A\"  endl;  variableA.num = mod;  cout  \"----B\"  endl;  auto f = [variableA](int a, int b) {  cout  \"----C\"  endl;  return a % variableA.num * b % variableA.num;  };  cout  \"----D\"  endl;  return f; }  void test3() {  cout  \"---test3---\"  endl;  int a = 10, b = 20, c = 7;  cout  \"----E\"  endl;  auto times = funtionTimesMod3(c);  cout  \"----F\"  endl;  cout  times(a, b)  endl;  cout  \"----G\"  endl; }  auto funtionTimesMod4(int mod) {  INT variableA;  cout  \"----A\"  endl;  variableA.num = mod;  cout  \"----B\"  endl;  class function {  const INT variableA;   public:  function(const INT \u0026variableA) : variableA(variableA) {}  int operator()(int a, int b) {  cout  \"----C\"  endl;  return a % variableA.num * b % variableA.num;  }  } f(variableA);  cout  \"----D\"  endl;  return f; }  void test4() {  cout  \"---test4---\"  endl;  int a = 10, b = 20, c = 7;  cout  \"----E\"  endl;  auto times = funtionTimesMod4(c);  cout  \"----F\"  endl;  cout  times(a, b)  endl;  cout  \"----G\"  endl; } 为了观察发生的值拷贝的时机,以确定我们自己写的这个类的行为和lambda真的完全一致,我们可以自定义一个class,并且让他发生拷贝构造的时候打印一些信息.\n运行结果如下:\n---test3--- ----E ----A ----B Copy constructor ----D ----F ----C 4 ----G ---test4--- ----E ----A ----B Copy constructor ----D ----F ----C 4 ----G 这又一次说明了说明捕获引起的值拷贝发生在lambda被初始化的时候.\n看起来这两个东西的行为几乎一致, 但是真的是这样吗?\n编译器的优化 编译器会对我们写的代码做出一些优化,以减少复制对象的次数.如果不了解这点可以看看这篇博客.\n如果我们关闭返回值优化,那么运行的结果是这样的:\n---test3--- ----E ----A ----B Copy constructor Copy constructor ----D Copy constructor Copy constructor ----F ----C 4 ----G ---test4--- ----E ----A ----B Copy constructor ----D Copy constructor Copy constructor ----F ----C 4 ----G 可以看到我们自己写的类,少了一次拷贝构造.\n我们先来解释一下lambda为什么会发生这么多次拷贝构造.\nauto funtionTimesMod3(int mod) {  INT variableA; // 5  cout  \"----A\"  endl; // 6   variableA.num = mod; // 7  cout  \"----B\"  endl; // 8  auto f = [variableA](int a, int b) {   cout  \"----C\"  endl; // 14  return a % variableA.num * b % variableA.num; //15  }; // 9  cout  \"----D\"  endl; // 10  return f; // 11 }  void test3() {  cout  \"---test3---\"  endl; // 1  int a = 10, b = 20, c = 7; // 2  cout  \"----E\"  endl; // 3  auto times = funtionTimesMod3(c); // 4  cout  \"----F\"  endl; // 12  cout  times(a, b)  endl; // 13  cout  \"----G\"  endl; //16 } 首先我们的程序是按照如上的顺序运行的.\n可以看到前两个拷贝构造发生在9,而第3、4次发生在11.\n如果完全按照语义来看的话,9这句话可以有两种理解方式:\n创建一个lambda对象,对象名字叫f,这个对象的内容就是后面那个lambda表达式. 创建一个lambda表达式,然后将其作为参数,调用同类型对象f的拷贝构造函数.  如果按照第一种方法来理解,那么第9行发生两次拷贝构造就不是很能理解了.\n所以应该是第二种.\n在10之后也发生了两次拷贝调用.应该是先建立了一个变量用来做返回值,比如说叫r,然后将f赋值给返回值变量r,然后返回值变量r在被赋值给test3()中的times,这样发生的两次拷贝构造.\nauto funtionTimesMod4(int mod) {  INT variableA;  cout  \"----A\"  endl;  variableA.num = mod;  cout  \"----B\"  endl;  class function {  const INT variableA;   public:  function(const INT \u0026variableA) : variableA(variableA) {}  int operator()(int a, int b) {  cout  \"----C\"  endl;  return a % variableA.num * b % variableA.num;  }  } f(variableA); //   cout  \"----D\"  endl;  return f; }  void test4() {  cout  \"---test4---\"  endl;  int a = 10, b = 20, c = 7;  cout  \"----E\"  endl;  auto times = funtionTimesMod4(c);  cout  \"----F\"  endl;  cout  times(a, b)  endl;  cout  \"----G\"  endl; } 之前自己模拟lambda的这个代码,我们在注释标注的那个位置的实现和lambda中,\"先建一个右值,然后拷贝构造出f\"的行为不太一样.导致这里少了一次拷贝构造.所以实际上应该是这样:\nauto funtionTimesMod5(int mod) {  INT variableA;  cout  \"----A\"  endl;  variableA.num = mod;  cout  \"----B\"  endl;  class function {  const INT variableA;   public:  function(const INT \u0026variableA) : variableA(variableA) {}  int operator()(int a, int b) {  cout  \"----C\"  endl;  return a % variableA.num * b % variableA.num;  }  };  function f = function(variableA);  cout  \"----D\"  endl;  return f; }  void test5() {  cout  \"---test5---\"  endl;  int a = 10, b = 20, c = 7;  cout  \"----E\"  endl;  auto times = funtionTimesMod5(c);  cout  \"----F\"  endl;  cout  times(a, b)  endl;  cout  \"----G\"  endl; } 实际上没必要纠结那么多,正常编译的话,其实是不会去先建一个右值的对象的.\n代码 #include  using namespace std;  auto funtionTimesMod1(int mod) {  int variableA = mod;  auto f = [variableA](int a, int b) { return a % variableA * b % variableA; };  return f; } void test1() {  cout  \"---test1---\"  endl;  int a = 10, b = 20, c = 7;  auto times = funtionTimesMod1(c);  cout  times(a, b)  endl; }  auto funtionTimesMod2(int mod) {  int variableA = mod;  auto f = [\u0026variableA](int a, int b) { return a % variableA * b % variableA; };  return f; } void test2() {  cout  \"---test2---\"  endl;  int a = 10, b = 20, c = 7;  auto times = funtionTimesMod2(c);  cout  times(a, b)  endl; }  class INT { public:  int num;  INT(const INT \u0026i) : num(i.num) { cout  \"Copy constructor\"  endl; }  INT() = default; };  auto funtionTimesMod3(int mod) {  INT variableA;  cout  \"----A\"  endl;  variableA.num = mod;  cout  \"----B\"  endl;  auto f = [variableA](int a, int b) {  cout  \"----C\"  endl;  return a % variableA.num * b % variableA.num;  };  cout  \"----D\"  endl;  return f; }  void test3() {  cout  \"---test3---\"  endl;  int a = 10, b = 20, c = 7;  cout  \"----E\"  endl;  auto times = funtionTimesMod3(c);  cout  \"----F\"  endl;  cout  times(a, b)  endl;  cout  \"----G\"  endl; }  auto funtionTimesMod4(int mod) {  INT variableA;  cout  \"----A\"  endl;  variableA.num = mod;  cout  \"----B\"  endl;  class function {  const INT variableA;   public:  function(const INT \u0026variableA) : variableA(variableA) {}  int operator()(int a, int b) {  cout  \"----C\"  endl;  return a % variableA.num * b % variableA.num;  }  } f(variableA);  cout  \"----D\"  endl;  return f; }  void test4() {  cout  \"---test4---\"  endl;  int a = 10, b = 20, c = 7;  cout  \"----E\"  endl;  auto times = funtionTimesMod4(c);  cout  \"----F\"  endl;  cout  times(a, b)  endl;  cout  \"----G\"  endl; }  auto funtionTimesMod5(int mod) {  INT variableA;  cout  \"----A\"  endl;  variableA.num = mod;  cout  \"----B\"  endl;  class function {  const INT variableA;   public:  function(const INT \u0026variableA) : variableA(variableA) {}  int operator()(int a, int b) {  cout  \"----C\"  endl;  return a % variableA.num * b % variableA.num;  }  };  function f = function(variableA);  cout  \"----D\"  endl;  return f; }  void test5() {  cout  \"---test5---\"  endl;  int a = 10, b = 20, c = 7;  cout  \"----E\"  endl;  auto times = funtionTimesMod5(c);  cout  \"----F\"  endl;  cout  times(a, b)  endl;  cout  \"----G\"  endl; }  int main() {  test1();  test2();  test3();  test4();  test5(); } ","wordCount":"1458","inLanguage":"zh-cn","datePublished":"2022-07-10T02:23:58+08:00","dateModified":"2022-07-10T02:23:58+08:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.black-desk.cn/post/lambda/"},"publisher":{"@type":"Organization","name":"RAMBLE\u0026BB","logo":{"@type":"ImageObject","url":"https://blog.black-desk.cn/favicon.ico"}}}</script>
+<script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"lambda | RAMBLE\u0026BB","name":"lambda","description":"这里整理一些关于c++中的匿名函数的知识.\n《C++ primer》上有的内容就不在重述了.这里重点讲一些primer上可能没有的东西.\n捕获的时机 primer 向我们介绍到: 有两种捕获变量的方式, 值捕获和引用捕获. 其中:\n ...\n与参数不同,被捕获的变量的值是在lambda创建时拷贝,而不是调用时拷贝\n...\n如果我们采用引用方式捕获一个变量,就必须确保被引用的对象在lambda执行的时候是存在的.lambda捕获的都是局部变量,这些变量在函数结束后就不复存在了.\n...\n 我们看一段代码:\nauto funtionTimesMod1(int mod) {  int variableA = mod;  auto f = [variableA](int a, int b) { return a % variableA * b % variableA; };  return f; } void test1() {  cout \u0026lt;\u0026lt; \u0026quot;---test1---\u0026quot; \u0026lt;\u0026lt; endl;  int a = 10, b = 20, c = 7;  auto times = funtionTimesMod1(c);  cout \u0026lt;\u0026lt; times(a, b) \u0026lt;\u0026lt; endl; } 这里funtionTimesMod1(int mod)返回一个签名为int(int, int)的函数,这个函数计算两个参数相乘对mod取模的结果.","keywords":[],"wordCount":"1458","inLanguage":"zh-cn","datePublished":"2022-07-10T02:23:58+08:00","dateModified":"2022-07-10T02:23:58+08:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.black-desk.cn/post/lambda/"},"publisher":{"@type":"Organization","name":"RAMBLE\u0026BB","logo":{"@type":"ImageObject","url":"https://blog.black-desk.cn/favicon.ico"}}}</script><link rel=stylesheet media=all href=https://cdnjs.cloudflare.com/ajax/libs/Han/3.3.0/han.min.css>
+<link rel=stylesheet media=all href=/pandoc_hl.css>
+<style>.uri:only-child{display:inline-block;width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}input[type=checkbox]{margin-right:.2em;margin-left:-1.7em;width:1.5em}</style>
+<script src=https://code.jquery.com/jquery-3.6.0.slim.min.js></script>
+<script>$(document).ready(()=>{$(".uri:only-child").each(function(){(this.nextSibling&&this.nextSibling.nodeValue&&this.nextSibling.nodeValue.trim()||this.previousSibling&&this.previousSibling.nodeValue&&this.previousSibling.nodeValue.trim())&&$(this).css("display","inline").css("white-space","break-spaces")})})</script>
+<noscript>
+<style>#theme-toggle,.top-link{display:none}</style>
+<style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary-bg:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51)}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style>
+</noscript>
 </head>
-<body id=top>
-<script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add('dark'):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove('dark'):window.matchMedia('(prefers-color-scheme: dark)').matches&&document.body.classList.add('dark')</script>
+<body id=top><script data-no-instant>function switchTheme(a){switch(a){case'light':document.body.classList.remove('dark');break;case'dark':document.body.classList.add('dark');break;default:window.matchMedia('(prefers-color-scheme: dark)').matches&&document.body.classList.add('dark')}}function isDarkTheme(){return document.body.className.includes("dark")}function getPrefTheme(){return localStorage.getItem("pref-theme")}function setPrefTheme(a){switchTheme(a),localStorage.setItem("pref-theme",a)}const toggleThemeCallbacks={};toggleThemeCallbacks.main=a=>{a?setPrefTheme('light'):setPrefTheme('dark')},window.addEventListener('toggle-theme',function(){const a=isDarkTheme();for(const b in toggleThemeCallbacks)toggleThemeCallbacks[b](a)});function toggleThemeListener(){window.dispatchEvent(new CustomEvent('toggle-theme'))}</script>
+<script>(function(){const b='light',a=getPrefTheme(),c=a||b;switchTheme(c)})()</script>
 <header class=header>
 <nav class=nav>
 <div class=logo>
 <a href=https://blog.black-desk.cn accesskey=h title="RAMBLE&BB (Alt + H)">RAMBLE&BB</a>
-<div class=logo-switches>
-<button id=theme-toggle accesskey=t title="(Alt + T)"><svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+<span class=logo-switches>
+<button id=theme-toggle accesskey=t title="(Alt + T)"><svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
 </button>
-</div>
+</span>
 </div>
 <ul id=menu>
 </ul>
 </nav>
 </header>
-<main class=main>
+<main class="main post">
 <article class=post-single>
 <header class=post-header>
+<div class=breadcrumbs><a href=https://blog.black-desk.cn>Home</a>&nbsp;»&nbsp;<a href=https://blog.black-desk.cn/post/>Posts</a></div>
 <h1 class=post-title>
 lambda
 </h1>
-<div class=post-meta><span title="2022-07-10 02:23:58 +0800 +0800">July 10, 2022</span>
+<div class=post-meta><span class=meta-item><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar" style="user-select:text"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" style="user-select:text"/><line x1="16" y1="2" x2="16" y2="6" style="user-select:text"/><line x1="8" y1="2" x2="8" y2="6" style="user-select:text"/><line x1="3" y1="10" x2="21" y2="10" style="user-select:text"/></svg>
+<span>July 10, 2022</span></span>
 </div>
-</header>
+</header> <div class="toc side right">
+<details open>
+<summary accesskey=c title="(Alt + C)">
+<span class=details>Table of Contents</span>
+</summary>
+<div class=inner><ul>
+<li>
+<a href=#%e6%8d%95%e8%8e%b7%e7%9a%84%e6%97%b6%e6%9c%ba aria-label=捕获的时机>捕获的时机</a></li>
+<li>
+<a href=#lambda-%e7%9a%84%e5%ae%9e%e7%8e%b0 aria-label="lambda 的实现">lambda 的实现</a></li>
+<li>
+<a href=#%e7%bc%96%e8%af%91%e5%99%a8%e7%9a%84%e4%bc%98%e5%8c%96 aria-label=编译器的优化>编译器的优化</a></li>
+<li>
+<a href=#%e4%bb%a3%e7%a0%81 aria-label=代码>代码</a>
+</li>
+</ul>
+</div>
+</details>
+</div>
 <div class=post-content><p>这里整理一些关于<code>c++</code>中的匿名函数的知识.</p>
 <p>《C++
 primer》上有的内容就不在重述了.这里重点讲一些primer上<strong>可能</strong>没有的东西.</p>
-<h2 id=捕获的时机>捕获的时机<a hidden class=anchor aria-hidden=true href=#捕获的时机>#</a></h2>
+<h2 id=捕获的时机>捕获的时机<a hidden class=anchor aria-hidden=true href=#捕获的时机>¶</a></h2>
 <p>primer 向我们介绍到: 有两种捕获变量的方式, 值捕获和引用捕获.
 其中:</p>
 <blockquote>
@@ -169,7 +186,7 @@ Process 15820 stopped
 (int) $3 = 20
 (lldb) p &amp;b
 (int *) $4 = 0x00007fffffffe120</code></pre>
-<h2 id=lambda-的实现>lambda 的实现<a hidden class=anchor aria-hidden=true href=#lambda-的实现>#</a></h2>
+<h2 id=lambda-的实现>lambda 的实现<a hidden class=anchor aria-hidden=true href=#lambda-的实现>¶</a></h2>
 <p>根据《C++
 Primer》在10.3以及14.8.1的介绍,我们知道一个lambda表达式是由编译器负责翻译成一个<strong>没有类名,重载过调用运算符</strong>的对象的.</p>
 <p>这解释了为什么我们只能用<code>auto</code>来定义一个lambda类型的变量,因为这个类是没有名字的,
@@ -257,7 +274,7 @@ Copy constructor
 ----G</code></pre>
 <p>这又一次说明了说明捕获引起的值拷贝发生在lambda被初始化的时候.</p>
 <p>看起来这两个东西的行为几乎一致, 但是真的是这样吗?</p>
-<h2 id=编译器的优化>编译器的优化<a hidden class=anchor aria-hidden=true href=#编译器的优化>#</a></h2>
+<h2 id=编译器的优化>编译器的优化<a hidden class=anchor aria-hidden=true href=#编译器的优化>¶</a></h2>
 <p>编译器会对我们写的代码做出一些优化,以减少复制对象的次数.如果不了解这点可以看看<a href=https://www.cnblogs.com/kekec/p/11303391.html>这篇</a>博客.</p>
 <p>如果我们关闭返回值优化,那么运行的结果是这样的:</p>
 <pre><code>---test3---
@@ -378,7 +395,7 @@ Copy constructor
 <span id=cb10-28><a href=#cb10-28 aria-hidden=true tabindex=-1></a>  cout <span class=op>&lt;&lt;</span> <span class=st>&quot;----G&quot;</span> <span class=op>&lt;&lt;</span> endl<span class=op>;</span></span>
 <span id=cb10-29><a href=#cb10-29 aria-hidden=true tabindex=-1></a><span class=op>}</span></span></code></pre></div>
 <p>实际上没必要纠结那么多,正常编译的话,其实是不会去先建一个右值的对象的.</p>
-<h2 id=代码>代码<a hidden class=anchor aria-hidden=true href=#代码>#</a></h2>
+<h2 id=代码>代码<a hidden class=anchor aria-hidden=true href=#代码>¶</a></h2>
 <div class=sourceCode id=cb11><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id=cb11-1><a href=#cb11-1 aria-hidden=true tabindex=-1></a><span class=pp>#include </span><span class=im>&lt;bits/stdc++.h&gt;</span></span>
 <span id=cb11-2><a href=#cb11-2 aria-hidden=true tabindex=-1></a><span class=kw>using</span> <span class=kw>namespace</span> std<span class=op>;</span></span>
 <span id=cb11-3><a href=#cb11-3 aria-hidden=true tabindex=-1></a></span>
@@ -504,23 +521,26 @@ Copy constructor
 <span id=cb11-123><a href=#cb11-123 aria-hidden=true tabindex=-1></a><span class=op>}</span></span></code></pre></div>
 </div>
 <footer class=post-footer>
-<ul class=post-tags>
-</ul>
 </footer>
 </article>
 </main>
 <footer class=footer>
-<span>&copy; 2022 <a href=https://blog.black-desk.cn>RAMBLE&BB</a></span>
-<span>
+<span>&copy; 2022 <a href=https://blog.black-desk.cn>RAMBLE&BB</a></span><span style=display:inline-block;margin-left:1em>
+<a href=https://creativecommons.org/licenses/by-sa/4.0/>CC BY-SA</a>
+</span>
+<span style=display:inline-block;margin-left:1em>
 Powered by
 <a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
-        <a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a>
+    <a href=https://github.com/reorx/hugo-PaperModX/ rel=noopener target=_blank>PaperModX</a>
 </span>
 </footer>
 <a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentcolor"><path d="M12 6H0l6-6z"/></svg>
 </a><script src=https://cdnjs.cloudflare.com/ajax/libs/Han/3.3.0/han.min.js></script>
-<script>let menu=document.getElementById('menu');menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener("click",function(b){b.preventDefault();var a=this.getAttribute("href").substr(1);window.matchMedia('(prefers-reduced-motion: reduce)').matches?document.querySelector(`[id='${decodeURIComponent(a)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(a)}']`).scrollIntoView({behavior:"smooth"}),a==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${a}`)})})</script>
+<script>(function(){const b=''=='1';if(b)return;let a=document.getElementById("theme-toggle");a.removeEventListener('click',toggleThemeListener),a.addEventListener('click',toggleThemeListener)})()</script>
+<script>(function(){let a=document.getElementById('menu');a&&(a.scrollLeft=localStorage.getItem("menu-scroll-position"),a.onscroll=function(){localStorage.setItem("menu-scroll-position",a.scrollLeft)});const b=''=='1',c=''=='1';if(window.matchMedia('(prefers-reduced-motion: reduce)').matches||b||c)return;document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener("click",function(b){b.preventDefault();var a=this.getAttribute("href").substr(1);document.querySelector(`[id='${decodeURIComponent(a)}']`).scrollIntoView({behavior:"smooth"}),a==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${a}`)})})})()</script>
 <script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script>
-<script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove('dark'),localStorage.setItem("pref-theme",'light')):(document.body.classList.add('dark'),localStorage.setItem("pref-theme",'dark'))})</script>
+<script>if(window.scrollListeners)for(const a of scrollListeners)window.removeEventListener('scroll',a);window.scrollListeners=[]</script>
+<script src=/js/medium-zoom.min.js data-no-instant></script>
+<script>(function(){const h='1'=='1';if(!h)return;if(!document.querySelector('.toc')){console.log('no toc found, ignore toc scroll');return}const i=window.scrollListeners,c=document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id]'),d='active';let a=c[0];e(a).classList.add(d);const g=()=>{const b=[];for(const a of c)if(j(a)<5)b.push(a);else break;b.length>0?newActiveHeading=b[b.length-1]:newActiveHeading=c[0],a!=newActiveHeading&&(e(a).classList.remove(d),a=newActiveHeading,e(a).classList.add(d))};let b=null;const f=()=>{b!==null&&clearTimeout(b),b=setTimeout(g,50)};window.addEventListener('scroll',f,!1),i.push(f);function e(a){const b=encodeURI(a.getAttribute('id')).toLowerCase();return document.querySelector(`.toc ul li a[href="#${b}"]`)}function j(a){if(!a.getClientRects().length)return 0;let b=a.getBoundingClientRect();return b.top}})()</script>
 </body>
 </html>

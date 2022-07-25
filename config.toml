@@ -3,6 +3,7 @@ languageCode = 'zh-cn'
 defaultContentLanguage = 'zh-cn'
 title = 'RAMBLE&BB'
 theme = 'PaperMod'
+copyright = 'RAMBLE&BB <a href="https://beian.miit.gov.cn/">闽ICP备20002090号-1</a>'
 [markup]
         defaultMarkdownHandler = 'pandoc'
 [security]

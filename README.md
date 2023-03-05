@@ -1,3 +1,3 @@
-# RAMBLE\&BB
+# RAMBLE and BB
 
 My blog.

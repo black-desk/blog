@@ -3,7 +3,6 @@ languageCode: 'zh-cn'
 defaultContentLanguage: 'zh-cn'
 title: 'RAMBLE&BB'
 theme: 'PaperMod'
-copyright: 'RAMBLE&BB <a href="https://beian.miit.gov.cn/">闽ICP备20002090号-1</a>'
 markup:
   defaultMarkdownHandler: 'pandoc'
 security:
@@ -16,7 +15,7 @@ security:
       - '^pandoc$'
 params:
   homeInfoParams:
-    Title: "RAMELE&BB"
+    Title: "RAMBLE&BB"
     Content: "a place to write myself down"
     socialIcons:
       - name: "twitter"

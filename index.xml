@@ -11,17 +11,7 @@ auto funtionTimesMod1(int mod) { int variableA = mod; auto f = [variableA](int a
 因为网上一直有声音认为其源码质量不错.刚好最近在学一些服务器编程相关的知识,所以就来简单分析一下它.
 同时由于希望能获得一些阅读源码的经验. 这里会简单记录我读源码的心路历程.
 目录结构 首先我们来tree一下,惯例,测试相关的文件就省略了
-❯ tree . ├── CHANGES ├── CONTRIBUTING.md ├── Dockerfile ├── LICENSE ├── MANIFEST.in ├── README.md ├── README.rst ├── config.json.example ├── debian │ ├── changelog │ ├── compat │ ├── config.json │ ├── control │ ├── copyright │ ├── docs │ ├── init.d │ ├── install │ ├── rules │ ├── shadowsocks.default │ ├── shadowsocks.manpages │ ├── source │ │ └── format │ ├── sslocal.1 │ └── ssserver.</description></item><item><title>只是为了把 Steam 游戏放到开始屏幕上</title><link>https://blog.black-desk.cn/post/%E5%8F%AA%E6%98%AF%E4%B8%BA%E4%BA%86%E6%8A%8A-steam-%E6%B8%B8%E6%88%8F%E6%94%BE%E5%88%B0%E5%BC%80%E5%A7%8B%E5%B1%8F%E5%B9%95%E4%B8%8A/</link><pubDate>Sun, 10 Jul 2022 02:23:58 +0800</pubDate><guid>https://blog.black-desk.cn/post/%E5%8F%AA%E6%98%AF%E4%B8%BA%E4%BA%86%E6%8A%8A-steam-%E6%B8%B8%E6%88%8F%E6%94%BE%E5%88%B0%E5%BC%80%E5%A7%8B%E5%B1%8F%E5%B9%95%E4%B8%8A/</guid><description>很久以前, 我有一个梦想, 我的开始菜单上能直接固定一些 steam 游戏的磁贴.
-然后我苦苦地寻找, 发现了这篇知乎文章, 然后我忍痛剁手, 花了我六块大洋, 买了这个叫 Steam Tiles 的 UWP 应用, 而这一切, 只是噩梦的开始.
-初次使用这个 UWP 应用, 它就刷新了我的三观. 一个功能如此简单的应用居然能这么卡.
-它需要读你安装 steam 游戏的目录, 然后从里面寻找合适大小的图片来制作磁贴, 也允许用户自定义图片, 可以从 url 下载图片, 可以从本地选取图片文件, 允许用户改变图片的位置, 大小, 以及磁贴的背景色.
-听起来很美好, 该自定义的都能自定义. 但是事实上.
-我是想破脑袋也想不出来, 为什么他读文件找图片能这么慢, 5个游戏, 他头一次找个图要将近半个小时.
-image-20200504214634198 不仅慢, 还有可能会读不出图片来, 比如像下面这样:
-image-20200504213156290 而这个时候我唯一找到的解决方法, 就是 TMD 清除掉他对于图片的缓存, 然后再让他找一次.
-为什么这么慢呢? 我也不知道. 任务管理器开起来一看:
-image-20200504213307798 不占用 CPU, 内存也不大, 那是磁盘读写么?
-image-20200504213452252 看起来也不是磁盘读写.那咋回事呢? 天知道.</description></item><item><title>记一个沙雕软件的破解</title><link>https://blog.black-desk.cn/post/overgrive/</link><pubDate>Sun, 10 Jul 2022 02:23:58 +0800</pubDate><guid>https://blog.black-desk.cn/post/overgrive/</guid><description>本文是一篇日记性质的碎碎念,唠叨和啰嗦在所难免,请见谅.
+❯ tree . ├── CHANGES ├── CONTRIBUTING.md ├── Dockerfile ├── LICENSE ├── MANIFEST.in ├── README.md ├── README.rst ├── config.json.example ├── debian │ ├── changelog │ ├── compat │ ├── config.json │ ├── control │ ├── copyright │ ├── docs │ ├── init.d │ ├── install │ ├── rules │ ├── shadowsocks.default │ ├── shadowsocks.manpages │ ├── source │ │ └── format │ ├── sslocal.1 │ └── ssserver.</description></item><item><title>记一个沙雕软件的破解</title><link>https://blog.black-desk.cn/post/overgrive/</link><pubDate>Sun, 10 Jul 2022 02:23:58 +0800</pubDate><guid>https://blog.black-desk.cn/post/overgrive/</guid><description>本文是一篇日记性质的碎碎念,唠叨和啰嗦在所难免,请见谅.
 故事是这样的,我突然想要一个能够在ubuntu上同步Google Drive的软件.我需要这个软件能够监控我磁盘上的文件变化,一旦文件变化了就上传;当然Google Drive上的文件要是发生了变化,也得能够同步到我的磁盘上.
 本来以为RClone可以,但是后来发现它只能单向同步,相当于是个备份工具,不能够满足我的要求.
 其实我也不希望搞那种很专业的工具,能有谷歌自己在Windows上做的那个"备份与同步" 那点功能,其实就可以了.配置最好也不要太麻烦.
@@ -38,7 +28,7 @@ image-20200504213452252 看起来也不是磁盘读写.那咋回事呢? 天知�
 不过,由于这个软件存在一些启动过程中的问题,所以我稍微研究了一下它,发现这是一个 python写的东西,于是我用uncompyle6,给它反编译了一下,看到了源码.
 不过反编译出来的源码并不能正常运行,存在一些问题,应该是反编译的时候控制流识别出错了.
 但是我却因此能够看到它的激活流程:
-def on_activation_button(widget): global licenseDisplay global splashProgressBar global splashWindow if &amp;#39;ProgressBar&amp;#39; in str(splashGrid.get_child_at(0, 4)): Gtk.Container.remove(splashGrid, splashProgressBar) splashGrid.attach(splashEntry, 0, 4, 2, 1) splashEntry.set_tooltip_text(_(&amp;#39;Copy and Paste your&amp;#39;) + &amp;#39; &amp;#39; + appDisplayName + &amp;#39; &amp;#39; + _(&amp;#39;Activation code&amp;#39;)) splashEntry.set_placeholder_text(_(&amp;#39;Enter Activation Code&amp;#39;)) splashLabel3.</description></item><item><title>麻将图片生成器</title><link>https://blog.black-desk.cn/post/mahjim/</link><pubDate>Sun, 10 Jul 2022 02:23:58 +0800</pubDate><guid>https://blog.black-desk.cn/post/mahjim/</guid><description>这两天由于拿到了一个麻将图包,运用了一些编译原理课上学的知识,动手实现了一个简单的麻将图片生成器.
+def on_activation_button(widget): global licenseDisplay global splashProgressBar global splashWindow if &amp;#39;ProgressBar&amp;#39; in str(splashGrid.get_child_at(0, 4)): Gtk.Container.remove(splashGrid, splashProgressBar) splashGrid.attach(splashEntry, 0, 4, 2, 1) splashEntry.set_tooltip_text(_(&amp;#39;Copy and Paste your&amp;#39;) + &amp;#39; &amp;#39; + appDisplayName + &amp;#39; &amp;#39; + _(&amp;#39;Activation code&amp;#39;)) splashEntry.set_placeholder_text(_(&amp;#39;Enter Activation Code&amp;#39;)) splashLabel3.set_markup(&amp;#39;&amp;lt;a href=&amp;quot;http://www.thefanclub.co.za/overgrive&amp;quot; &amp;gt;&amp;#39; + _(&amp;#39;Get Activation Code&amp;#39;) + &amp;#39;&amp;lt;/a&amp;gt;&amp;#39;) splashLabel3.</description></item><item><title>麻将图片生成器</title><link>https://blog.black-desk.cn/post/mahjim/</link><pubDate>Sun, 10 Jul 2022 02:23:58 +0800</pubDate><guid>https://blog.black-desk.cn/post/mahjim/</guid><description>这两天由于拿到了一个麻将图包,运用了一些编译原理课上学的知识,动手实现了一个简单的麻将图片生成器.
 项目地址在这里,同时也在自己的服务器上部署了一个demo.
 这里简单聊聊这个小工具.
 名字 Mahjong,是麻将这个游戏的一种英文表示方法,由于雀魂叫majsoul,这里就只用到j为止,加上图片image的im,就成了mahjim, 这个命名可以说是很没有新意了.
@@ -53,4 +43,16 @@ pre+num+class 其中pre表示一个前缀,可以是_或者^,也可以没有,用�
 简单的解决方式就是直接用汉字来输入字牌,那么这样的话,类似中中中,白白白这种经常出现的组合又显得很不方便.所以我们也可以简单的想到一个这样的缩写:3中=中中中,仔细想想就会发现这个缩写和之前的数字牌表示方式是不冲突的.
 风格 由于图包中的麻将区分国标和日麻,我们还需要一个额外的设置,来区分cn和jp,简单起见,我们就直接在整个字符串的开头放上一个cn|或者jp|来区分就可以了.
 文法 我们做了这样的设计之后,基本整理一下就可以得出文法了:
-input -&amp;gt; style + &amp;quot;|&amp;quot; + majs | majs // 旧 input -&amp;gt; majs style -&amp;gt; &amp;quot;cn&amp;quot; | &amp;quot;jp&amp;quot; 国标/日麻 // 旧 majs -&amp;gt; group + majs | empty 描述麻将牌的字符串 group -&amp;gt; ps + class | p + Z 按照牌的种类将牌分组, 比如 &amp;quot;123s456w3中&amp;quot; 有3个group, &amp;quot;123s&amp;quot; &amp;quot;456w&amp;quot; &amp;quot;3中&amp;quot; F -&amp;gt; &amp;quot;东&amp;quot; | &amp;quot;南&amp;quot; | &amp;quot;西&amp;quot; | &amp;quot;北&amp;quot; | &amp;quot;白&amp;quot; | &amp;quot;发&amp;quot; | &amp;quot;中&amp;quot; | &amp;quot;+&amp;quot; | .</description></item></channel></rss>
+input -&amp;gt; style + &amp;quot;|&amp;quot; + majs | majs // 旧 input -&amp;gt; majs style -&amp;gt; &amp;quot;cn&amp;quot; | &amp;quot;jp&amp;quot; 国标/日麻 // 旧 majs -&amp;gt; group + majs | empty 描述麻将牌的字符串 group -&amp;gt; ps + class | p + Z 按照牌的种类将牌分组, 比如 &amp;quot;123s456w3中&amp;quot; 有3个group, &amp;quot;123s&amp;quot; &amp;quot;456w&amp;quot; &amp;quot;3中&amp;quot; F -&amp;gt; &amp;quot;东&amp;quot; | &amp;quot;南&amp;quot; | &amp;quot;西&amp;quot; | &amp;quot;北&amp;quot; | &amp;quot;白&amp;quot; | &amp;quot;发&amp;quot; | &amp;quot;中&amp;quot; | &amp;quot;+&amp;quot; | .</description></item><item><title>只是为了把 Steam 游戏放到开始屏幕上</title><link>https://blog.black-desk.cn/post/%E5%8F%AA%E6%98%AF%E4%B8%BA%E4%BA%86%E6%8A%8A-steam-%E6%B8%B8%E6%88%8F%E6%94%BE%E5%88%B0%E5%BC%80%E5%A7%8B%E5%B1%8F%E5%B9%95%E4%B8%8A/</link><pubDate>Sun, 10 Jul 2022 02:23:58 +0800</pubDate><guid>https://blog.black-desk.cn/post/%E5%8F%AA%E6%98%AF%E4%B8%BA%E4%BA%86%E6%8A%8A-steam-%E6%B8%B8%E6%88%8F%E6%94%BE%E5%88%B0%E5%BC%80%E5%A7%8B%E5%B1%8F%E5%B9%95%E4%B8%8A/</guid><description>很久以前, 我有一个梦想, 我的开始菜单上能直接固定一些 steam 游戏的磁贴.
+然后我苦苦地寻找, 发现了这篇知乎文章, 然后我忍痛剁手, 花了我六块大洋, 买了这个叫 Steam Tiles 的 UWP 应用, 而这一切, 只是噩梦的开始.
+初次使用这个 UWP 应用, 它就刷新了我的三观. 一个功能如此简单的应用居然能这么卡.
+它需要读你安装 steam 游戏的目录, 然后从里面寻找合适大小的图片来制作磁贴, 也允许用户自定义图片, 可以从 url 下载图片, 可以从本地选取图片文件, 允许用户改变图片的位置, 大小, 以及磁贴的背景色.
+听起来很美好, 该自定义的都能自定义. 但是事实上.
+我是想破脑袋也想不出来, 为什么他读文件找图片能这么慢, 5个游戏, 他头一次找个图要将近半个小时.
+image-20200504214634198 不仅慢, 还有可能会读不出图片来, 比如像下面这样:
+image-20200504213156290 而这个时候我唯一找到的解决方法, 就是 TMD 清除掉他对于图片的缓存, 然后再让他找一次.
+为什么这么慢呢? 我也不知道. 任务管理器开起来一看:
+image-20200504213307798 不占用 CPU, 内存也不大, 那是磁盘读写么?
+image-20200504213452252 看起来也不是磁盘读写.那咋回事呢? 天知道.
+好在这种找图的过程在你使用这个软件的过程中只会出现一次 (当然如果你装了个新游戏, 然后想把它钉在开始菜单里面, 你又会经历一遍这个神奇的事情.) 经过几次的尝试, 我终于可以正常的加载出图片了, 这个时候我发现了一个特别操蛋的事情.
+image-20200504213638142 看到那个输入 url 的框了么?</description></item></channel></rss>
